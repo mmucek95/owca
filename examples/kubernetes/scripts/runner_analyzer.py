@@ -1,15 +1,12 @@
 import os
 import statistics
-import json, requests
-import datetime
-from typing import Dict, List, Tuple
-from collections import defaultdict, namedtuple
-import numpy as np
+import requests
+from typing import List, Tuple
+from collections import defaultdict
 import pandas as pd
 from pprint import pprint
-import pprint
 from urllib import parse
-from dataclasses import dataclass, field
+from dataclasses import field
 from dataclasses import dataclass
 from typing import Dict
 from enum import Enum
@@ -20,13 +17,12 @@ from runner import AEP_NODES, NODES_CAPACITIES
 class PrometheusClient:
     BASE_URL = "http://100.64.176.36:30900"
 
-    @staticmethod
-    def range_query(query, start, end, step=1):
+    def range_query(self, query, start, end, step=1):
         """ range query - results vector
         https://prometheus.io/docs/prometheus/latest/querying/api/#range-vectors
         """
-        urlr = BASE_URL + '/api/v1/query_range?{}'.format(parse.urlencode(dict(
-            start=start, end=end, query=query, time=time, step=step)))
+        urlr = self.BASE_URL + '/api/v1/query_range?{}'.format(parse.urlencode(dict(
+            start=start, end=end, query=query, time=start, step=step)))
         r = requests.get(urlr)
         try:
             r.raise_for_status()
@@ -45,7 +41,8 @@ class PrometheusClient:
 
         Sample usage:
         r = instant_query("avg_over_time(task_llc_occupancy_bytes
-            {app='redis-memtier-big', host='node37', task_name='default/redis-memtier-big-0'}[3000s])",
+            {app='redis-memtier-big', host='node37',
+             task_name='default/redis-memtier-big-0'}[3000s])",
             1583395200)
         """
         urli = PrometheusClient.BASE_URL + '/api/v1/query?{}'.format(parse.urlencode(dict(
@@ -65,18 +62,18 @@ class PrometheusClient:
     def convert_result_to_dict(result):
         """ Very memory inefficient!"""
         d = defaultdict(list)
-        for serie in result:
-            metric = serie['metric']
+        for series in result:
+            metric = series['metric']
             # instant query
-            if 'value' in serie:
+            if 'value' in series:
                 for label_name, label_value in metric.items():
                     d[label_name].append(label_value)
-                timestamp, value = serie['value']
+                timestamp, value = series['value']
                 d['value'].append(value)
                 d['timestamp'].append(pd.Timestamp(timestamp, unit='s'))
             # range query
-            elif 'values' in serie:
-                for value in serie['values']:
+            elif 'values' in series:
+                for value in series['values']:
                     for label_name, label_value in metric.items():
                         d[label_name].append(label_value)
                     timestamp, value = value
@@ -96,7 +93,8 @@ class Stage:
         self.tasks: List[Task] = AnalyzerQueries.query_tasks_list(t_end)
         AnalyzerQueries.query_task_performance_metrics(time=t_end, tasks=self.tasks)
 
-        self.nodes: Dict[str, Node] = {nodename: Node(nodename) for nodename in NODES_CAPACITIES.keys()}
+        self.nodes: Dict[str, Node] = {node_name: Node(node_name)
+                                       for node_name in NODES_CAPACITIES.keys()}
         AnalyzerQueries.query_platform_performance_metrics(time=t_end, nodes=self.nodes)
 
 
@@ -109,6 +107,7 @@ class Task:
 
     def if_aep(self):
         return self.node in AEP_NODES
+
 
 @dataclass
 class Node:
@@ -123,16 +122,18 @@ class StagesAnalyzer:
         # @Move to loader
         T_DELTA = os.environ.get('T_DELTA', 0)
 
-        self.stages = [] 
-        for i in (0,2,4):
-            self.stages.append(Stage(t_start=events[i][0].timestamp()+T_DELTA, t_end=events[i+1][0].timestamp() + T_DELTA))
+        self.stages = []
+        for i in (0, 2, 4):
+            self.stages.append(Stage(t_start=events[i][0].timestamp()+T_DELTA,
+                                     t_end=events[i+1][0].timestamp() + T_DELTA))
 
     def get_all_tasks_count_in_stage(self, stage: int):
         return sum(int(node.performance_metrics[Metric.POD_SCHEDULED]['instant'])
                    for node in self.stages[stage].nodes.values()
                    if Metric.POD_SCHEDULED in node.performance_metrics)
 
-    def delete_report_files(self, report_root_dir):
+    @staticmethod
+    def delete_report_files(report_root_dir):
         if os.path.isdir(report_root_dir):
             for file_ in os.listdir(report_root_dir):
                 os.remove(os.path.join(report_root_dir, file_))
@@ -142,14 +143,14 @@ class StagesAnalyzer:
         # 1) list all workloads which are run on AEP (Task.workload.name) in stage 3 (or 2)
         #   a) for all this workloads read performance on DRAM in stage 1
         # 2) for assertion and consistency we could also check how compare results in all stages
-        # 3) compare results which we got AEP vs DRAM seperately for stage 2 and 3
+        # 3) compare results which we got AEP vs DRAM separately for stage 2 and 3
         #   a) for each workload:
-    
+
         # baseline results in stage0 on DRAM
         for i in range(len(self.stages)):
             assert self.get_all_tasks_count_in_stage(0) > 20
 
-        # taskthroughput
+        # task throughput
         @dataclass
         class PSummary:
             """Performance summary"""
@@ -158,6 +159,7 @@ class StagesAnalyzer:
 
         def get_throughput_q01(task: Task) -> float:
             return float(task.performance_metrics[Metric.TASK_THROUGHPUT]['q0.1,'])
+
         def get_latency_q09(task: Task) -> float:
             return float(task.performance_metrics[Metric.TASK_LATENCY]['q0.9,'])
 
@@ -177,41 +179,47 @@ class StagesAnalyzer:
 
         def get_throughput(task: Task, subvalue) -> float:
             return float(task.performance_metrics[Metric.TASK_THROUGHPUT][subvalue])
+
         def get_latency(task: Task, subvalue) -> float:
             return float(task.performance_metrics[Metric.TASK_LATENCY][subvalue])
+
         workloads_baseline_avg = {}
         all_workloads = set(task.workload_name for task in self.stages[0].tasks.values())
         for workload in all_workloads:
-            tasks = [task for task in self.stages[0].tasks.values() if task.workload_name == workload]
-            t = statistics.mean([get_throughput(task, 'avg') for task in tasks])
-            l = statistics.mean([get_latency(task, 'avg') for task in tasks])
-            workloads_baseline_avg[workload] = PSummary(t, l)
+            tasks = [
+                task for task in self.stages[0].tasks.values() if task.workload_name == workload]
+            throughput = statistics.mean([get_throughput(task, 'avg') for task in tasks])
+            latency = statistics.mean([get_latency(task, 'avg') for task in tasks])
+            workloads_baseline_avg[workload] = PSummary(throughput, latency)
 
         # Compare to baseline results which we got on AEP
         @dataclass
         class TaskSummary:
-            def __init__(self, task, throughput_optimistic_result, latency_optimistic_result, throughput_average_result, latency_average_result, limits):
+            def __init__(self, task, throughput_optimistic_result, latency_optimistic_result,
+                         throughput_average_result, latency_average_result, limits):
                 self.task: Task = task
                 self.latency_optimistic_result: float = latency_optimistic_result
                 self.throughput_optimistic_result: float = throughput_optimistic_result
                 self.latency_average_result: float = latency_average_result
                 self.throughput_average_result: float = throughput_average_result
-                self.pass_optimistic_limits = self.throughput_optimistic_result > limits.throughput and self.latency_optimistic_result < limits.latency
-                self.pass_average_limits = self.throughput_average_result > limits.throughput and self.latency_average_result < limits.latency
-
-            #def __repr__(self):
-            #    return "TaskSummary(taskname={}, latency_result={}, throughput_result={}, pass_limits={})".format(
-            #            self.task.name, self.latency_result, self.throughput_result, self.pass_limits)
+                self.pass_optimistic_limits = self.throughput_optimistic_result > \
+                    limits.throughput and \
+                    self.latency_optimistic_result < limits.latency
+                self.pass_average_limits = self.throughput_average_result > \
+                    limits.throughput and self.latency_average_result < limits.latency
 
             def to_dict(self):
                 return {
-                    'latency_optimistic_result': self.latency_optimistic_result, 'throughput_optimistic_result': self.throughput_optimistic_result,
-                    'latency_average_result': self.latency_average_result, 'throughput_average_result': self.throughput_average_result,
-                    'taskname': self.task.name, 'workload': self.task.workload_name, 'pass_optimistic_limits': self.pass_optimistic_limits, 'pass_average_limits': self.pass_average_limits}
+                    'latency_optimistic_result': self.latency_optimistic_result,
+                    'throughput_optimistic_result': self.throughput_optimistic_result,
+                    'latency_average_result': self.latency_average_result,
+                    'throughput_average_result': self.throughput_average_result,
+                    'taskname': self.task.name, 'workload': self.task.workload_name,
+                    'pass_optimistic_limits': self.pass_optimistic_limits,
+                    'pass_average_limits': self.pass_average_limits}
 
         # @TODO should set as parameter
         limits = PSummary(throughput=0.8, latency=1.5)
-
 
         # copied from below, replica of code, just changed index
         aep_tasks_summaries_kubernetes_only = []
@@ -246,26 +254,39 @@ class StagesAnalyzer:
                                        limits)
             aep_tasks_summaries.append(task_summary)
 
-        
-
         def node_to_dict(node: Node):
             assert len(AEP_NODES) == 1, 'Not adjusted to multiple nodes'
-            return {'name': node.name, 
-                    'cpu_requested': round(float(node.performance_metrics[Metric.PLATFORM_CPU_REQUESTED]['instant']), 2),
-                    'cpu_requested [%]': round(float(node.performance_metrics[Metric.PLATFORM_CPU_REQUESTED]['instant'])/AEP_NODES[0]['cpu']*100, 2),
-                    'cpu_util': round(float(node.performance_metrics[Metric.PLATFORM_CPU_UTIL]['instant']),2),
-                    'mem_requested': round(float(node.performance_metrics[Metric.PLATFORM_MEM_USAGE]['instant']),2),
-                    'mem_requested [%]': round(float(node.performance_metrics[Metric.PLATFORM_MEM_USAGE]['instant'])/AEP_NODES[0]['mem']*100,2),
-                    'mbw_total':     round(float(node.performance_metrics[Metric.PLATFORM_MBW_TOTAL]['instant']),2),
-                    'dram_hit_ratio [%]': round(float(node.performance_metrics[Metric.PLATFORM_DRAM_HIT_RATIO]['instant']) * 100,2),
-                    'wss_used (aprox)': round(float(node.performance_metrics[Metric.PLATFORM_WSS_USED]['instant']),2),
-                    'wss_used (aprox) [%]': round(float(node.performance_metrics[Metric.PLATFORM_WSS_USED]['instant'])/193*100,2),
-                   }
+            return {'name': node.name,
+                    'cpu_requested': round(float(
+                        node.performance_metrics[Metric.PLATFORM_CPU_REQUESTED]['instant']), 2),
+                    'cpu_requested [%]': round(float(
+                        node.performance_metrics[Metric.PLATFORM_CPU_REQUESTED]['instant']) /
+                                               AEP_NODES[0]['cpu'] * 100, 2),
+                    'cpu_util': round(float(
+                        node.performance_metrics[Metric.PLATFORM_CPU_UTIL]['instant']), 2),
+                    'mem_requested': round(float(
+                        node.performance_metrics[Metric.PLATFORM_MEM_USAGE]['instant']), 2),
+                    'mem_requested [%]': round(float(
+                        node.performance_metrics[Metric.PLATFORM_MEM_USAGE]['instant']) /
+                                               AEP_NODES[0]['mem'] * 100, 2),
+                    'mbw_total': round(float(
+                        node.performance_metrics[Metric.PLATFORM_MBW_TOTAL]['instant']), 2),
+                    'dram_hit_ratio [%]': round(float(
+                        node.performance_metrics[Metric.PLATFORM_DRAM_HIT_RATIO]['instant']) *
+                                                100, 2),
+                    'wss_used (aprox)': round(float(
+                        node.performance_metrics[Metric.PLATFORM_WSS_USED]['instant']), 2),
+                    'wss_used (aprox) [%]': round(float(
+                        node.performance_metrics[Metric.PLATFORM_WSS_USED]['instant']) /
+                                                  193 * 100, 2),
+                    }
         node_df_kubernetes_only = pd.DataFrame([node_to_dict(self.stages[1].nodes['node101'])])
-        aep_tasks__kubernetes_only_df = pd.DataFrame([task_summary.to_dict() for task_summary in aep_tasks_summaries_kubernetes_only])
+        aep_tasks__kubernetes_only_df = pd.DataFrame(
+            [task_summary.to_dict() for task_summary in aep_tasks_summaries_kubernetes_only])
 
         node_df = pd.DataFrame([node_to_dict(self.stages[2].nodes['node101'])])
-        aep_tasks_df = pd.DataFrame([task_summary.to_dict() for task_summary in aep_tasks_summaries])
+        aep_tasks_df = pd.DataFrame(
+            [task_summary.to_dict() for task_summary in aep_tasks_summaries])
 
         with open(os.path.join(report_root_dir, 'results_df.txt'), 'a+') as fref:
             fref.write('*' * 90 + '\n')
@@ -273,8 +294,11 @@ class StagesAnalyzer:
             for i in range(5):
                 fref.write("Time event {}: {}.\n".format(
                            i, self.events_data[0][i][0].strftime("%d-%b-%Y (%H:%M:%S)")))
-            fref.write("\nWorkloads scheduled:\n{}\n".format(pprint.pformat(self.events_data[1], indent=0, width=120, compact=True)))
-            utilization_file = os.path.join(os.path.dirname(report_root_dir), 'choosen_workloads_utilization.{}.txt'.format(experiment_index))
+            fref.write("\nWorkloads scheduled:\n{}\n".format(pprint.pformat(
+                self.events_data[1], indent=0, width=120, compact=True)))
+            utilization_file = os.path.join(os.path.dirname(report_root_dir),
+                                            'chosen_workloads_utilization.{}.txt'.format(
+                                                experiment_index))
             utilization = open(utilization_file).readlines()[0].rstrip()
             fref.write("Utilization of resources: {}\n".format(utilization))
 
@@ -284,11 +308,13 @@ class StagesAnalyzer:
             fref.write(str(aep_tasks__kubernetes_only_df.to_string()))
             fref.write('\n\n')
             fref.write('Passed {}/{} avg limit >>{}<<\n'.format(
-                           len([task for task in aep_tasks_summaries_kubernetes_only if task.pass_average_limits]),
+                           len([task for task in aep_tasks_summaries_kubernetes_only if
+                                task.pass_average_limits]),
                            len(aep_tasks_summaries_kubernetes_only),
                            limits))
             fref.write('Passed {}/{} optimistic limit >>{}<<\n'.format(
-                            len([task for task in aep_tasks_summaries_kubernetes_only if task.pass_optimistic_limits]),
+                            len([task for task in aep_tasks_summaries_kubernetes_only if
+                                 task.pass_optimistic_limits]),
                             len(aep_tasks_summaries_kubernetes_only), limits))
 
             fref.write("\n***WCA-SCHEDULER***\n")
@@ -300,10 +326,9 @@ class StagesAnalyzer:
                             len([task for task in aep_tasks_summaries if task.pass_average_limits]),
                             len(aep_tasks_summaries),
                             limits))
-            fref.write('Passed {}/{} optimistic limit >>{}<<\n'.format(
-                            len([task for task in aep_tasks_summaries if task.pass_optimistic_limits]),
-                            len(aep_tasks_summaries),
-                            limits))
+            fref.write('Passed {}/{} optimistic limit >>{}<<\n'.format(len(
+                [task for task in aep_tasks_summaries if task.pass_optimistic_limits]),
+                len(aep_tasks_summaries), limits))
 
             fref.write('*' * 90 + '\n')
             fref.write('\n\n\n')
@@ -323,7 +348,7 @@ class Metric(Enum):
     PLATFORM_DRAM_HIT_RATIO = 'platform_dram_hit_ratio'
     PLATFORM_WSS_USED = 'platform_wss_used'
 
-    
+
 MetricsQueries = {
     Metric.TASK_THROUGHPUT: 'apm_sli',
     Metric.TASK_LATENCY: 'apm_sli2',
@@ -333,10 +358,13 @@ MetricsQueries = {
     Metric.POD_SCHEDULED: 'wca_tasks',
     Metric.PLATFORM_MEM_USAGE: 'sum(task_requested_mem_bytes) by (nodename) / 1e9',
     Metric.PLATFORM_CPU_REQUESTED: 'sum(task_requested_cpus) by (nodename)',
-    Metric.PLATFORM_CPU_UTIL: "sum(1-rate(node_cpu_seconds_total{mode='idle'}[10s])) by(nodename) / sum(platform_topology_cpus) by (nodename)",
-    Metric.PLATFORM_MBW_TOTAL: 'sum(platform_dram_reads_bytes_per_second + platform_pmm_reads_bytes_per_second) by (nodename) / 1e9',
+    Metric.PLATFORM_CPU_UTIL: "sum(1-rate(node_cpu_seconds_total{mode='idle'}[10s])) "
+                              "by(nodename) / sum(platform_topology_cpus) by (nodename)",
+    Metric.PLATFORM_MBW_TOTAL: 'sum(platform_dram_reads_bytes_per_second + '
+                               'platform_pmm_reads_bytes_per_second) by (nodename) / 1e9',
     Metric.PLATFORM_DRAM_HIT_RATIO: 'avg(platform_dram_hit_ratio) by (nodename)',
-    Metric.PLATFORM_WSS_USED: 'sum(avg_over_time(task_wss_referenced_bytes[15s])) by (nodename) / 1e9',
+    Metric.PLATFORM_WSS_USED: 'sum(avg_over_time(task_wss_referenced_bytes[15s])) '
+                              'by (nodename) / 1e9',
 }
 
 
@@ -371,21 +399,19 @@ class AnalyzerQueries:
 
     @staticmethod
     def query_platform_performance_metrics(time: int, nodes: Dict[str, Node]):
-        # very important parameter
-        window_length = 120  # [s]
         metrics = (Metric.PLATFORM_MEM_USAGE, Metric.PLATFORM_CPU_REQUESTED,
                    Metric.PLATFORM_CPU_UTIL, Metric.PLATFORM_MBW_TOTAL,
                    Metric.POD_SCHEDULED, Metric.PLATFORM_DRAM_HIT_RATIO, Metric.PLATFORM_WSS_USED)
-        
+
         for metric in metrics:
             query_results = PrometheusClient.instant_query(MetricsQueries[metric], time)
-            descr = metric.value 
             for result in query_results:
-                nodes[result['metric']['nodename']].performance_metrics[metric] = {'instant': result['value'][1]}
+                nodes[result['metric']['nodename']].performance_metrics[metric] = \
+                    {'instant': result['value'][1]}
 
     @staticmethod
     def query_performance_metrics(time: int, functions_args: List[Tuple[Function, str]],
-                metrics: List[Metric], window_length: int) -> Dict[str, Dict]:
+                                  metrics: List[Metric], window_length: int) -> Dict[Metric, Dict]:
         """performance metrics which needs aggregation over time"""
         query_results: Dict[Metric, Dict] = {}
         for metric in metrics:
@@ -411,7 +437,8 @@ class AnalyzerQueries:
         function_args = ((Function.AVG, ''), (Function.QUANTILE, '0.1,'),
                          (Function.QUANTILE, '0.9,'),)
 
-        query_results = AnalyzerQueries.query_performance_metrics(time, function_args, metrics, window_length)
+        query_results = AnalyzerQueries.query_performance_metrics(time, function_args,
+                                                                  metrics, window_length)
         for metric, query_result in query_results.items():
             for aggregation_name, result in query_result.items():
                 for per_app_result in result:
@@ -424,7 +451,7 @@ class AnalyzerQueries:
 
 
 def load_events_file(filename):
-    # Each python structure in seperate file.
+    # Each python structure in separate file.
     with open(filename) as fref:
         il = 0
         workloads_ = []
@@ -467,4 +494,3 @@ if __name__ == "__main__":
     experiment_dir = '2020-03-18__hp_enabled'
     analyze_3stage_experiment('results/{}/events.txt'.format(experiment_dir),
                               'results/{}/runner_analyzer'.format(experiment_dir))
-
