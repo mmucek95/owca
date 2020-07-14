@@ -15,8 +15,8 @@
 FROM centos:7
 
 RUN yum -y update
-RUN yum -y install epel-release
+RUN yum -y install epel-release git make gcc libuuid libuuid-devel libxml2-devel libxml2
 RUN git clone https://bitbucket.org/jisooy/pmbench
-RUN cd pmbench && make
+RUN cd pmbench && make pmbench
 
 RUN useradd -M pmbench

@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: stress
+  annotations:
+    cri-resource-manager.intel.com/memory-type: |
+      stress: dram,pmem
+    cri-resource-manager.intel.com/cold-start: |
+      stress:
+        duration: 60s
+spec:
+  template:
+    spec:
+      containers:
+        - name: stress
+          resources:
+            requests:
+              cpu: 2
+              memory: 7G
+            limits:
+              cpu: 2
+              memory: 7G

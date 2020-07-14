@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: stress
+  name: pmbench
 spec:
   template:
     spec:
@@ -9,9 +9,9 @@ spec:
         - name: pmbench
           resources:
             requests:
-              cpu: 8
-              memory: 80G
+              cpu: 9
+              memory: 100G
             limits:
-              cpu: 8
-              memory: 80G
+              cpu: 9
+              memory: 100G
 
