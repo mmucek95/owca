@@ -28,7 +28,7 @@ spec:
             - sh
             - -c
             - >
-              pmbench $extra
+              ./pmbench/pmbench $extra
 
   # required for workaround bug with kustomize https://github.com/kubernetes-sigs/kustomize/issues/504
   # when using commonLabels
