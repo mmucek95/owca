@@ -269,7 +269,8 @@ class KubernetesNode(Node):
                               .format(pod_id, pod_name, container.get('name'), container_state))
                     break
 
-                container_id = container.get('containerID').split('docker://')[1]
+                # Here can be containerd:// or docker://, but no more difference for id
+                container_id = container.get('containerID').split('://')[1]
                 containers_cgroups.append(
                     _build_cgroup_path(self.cgroup_driver, qos,
                                        pod_id, container_id))
