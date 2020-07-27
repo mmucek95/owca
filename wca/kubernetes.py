@@ -64,6 +64,11 @@ class CgroupDriverType(str, Enum):
     CGROUPFS = 'cgroupfs'
 
 
+class ContainerRuntimeType(str, Enum):
+    DOCKER = 'docker'
+    CONTAINERD = 'containerd'
+
+
 # Special label used
 QOS_LABELNAME = 'app_kubernetes_io__qos_class'
 
@@ -299,6 +304,8 @@ class MissingCgroupException(Exception):
 def _build_cgroup_path(cgroup_driver, qos: str, pod_id: str, container_id=''):
     """If cgroup for pod needed set container_id to empty string."""
     result: str = ""
+    # containers from runtime containerd work with cgroupfs driver
+    # TODO: check that systemd cgroup driver works with containerd
     if cgroup_driver == CgroupDriverType.SYSTEMD:
         pod_id = pod_id.replace("-", "_")
         if container_id != "":
