@@ -64,11 +64,6 @@ class CgroupDriverType(str, Enum):
     CGROUPFS = 'cgroupfs'
 
 
-class ContainerRuntimeType(str, Enum):
-    DOCKER = 'docker'
-    CONTAINERD = 'containerd'
-
-
 # Special label used
 QOS_LABELNAME = 'app_kubernetes_io__qos_class'
 
