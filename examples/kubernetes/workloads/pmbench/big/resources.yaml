@@ -4,6 +4,13 @@ metadata:
   name: pmbench
 spec:
   template:
+    metadata:
+      annotations:
+        cri-resource-manager.intel.com/memory-type: |
+          stress: dram,pmem
+        cri-resource-manager.intel.com/cold-start: |
+          stress:
+            duration: 60s
     spec:
       containers:
         - name: pmbench
