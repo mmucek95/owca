@@ -1,0 +1,15 @@
+nameSuffix: -stream-small-ka
+bases:
+- ../base
+
+commonLabels:
+  app: stress-stream-small-ka
+  size: small
+
+configMapGenerator:
+- name: stress
+  literals:
+    - extra='--stream 1 --stream-l3-size=512m --stream-index=0' # 6GB RSS
+
+patchesStrategicMerge:
+  - resources.yaml
