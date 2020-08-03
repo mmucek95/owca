@@ -139,7 +139,7 @@ pipeline {
                     git fetch origin ${CADVISOR_REVISION} --depth=1
                     git checkout FETCH_HEAD
 
-                    docker build -t ${IMAGE_NAME} -f ../Dockerfile.cadvisor .
+                    docker build -t ${IMAGE_NAME} -f ../examples/kubernetes/monitoring/cadvisor/Dockerfile.cadvisor .
                     docker push ${IMAGE_NAME}
                     popd
                     rm -fr cadvisor
@@ -460,9 +460,6 @@ pipeline {
                         --from-file ${WORKSPACE}/tests/e2e/nginx/server.crt \
                         --from-file ${WORKSPACE}/tests/e2e/nginx/server-key.pem \
                         --from-file ${WORKSPACE}/tests/e2e/nginx/CA.crt"
-
-                    print('Starting prometheus...')
-                    sh "kubectl apply -k ${WORKSPACE}/${KUSTOMIZATION_MONITORING}prometheus/"
 
                     print('Starting wca-wcheduler...')
                     sh "kubectl apply -k ${WORKSPACE}/${WCA_SCHEDULER_PATH}"
