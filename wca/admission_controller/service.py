@@ -77,6 +77,12 @@ class AnnotatingService:
         modified_spec = copy.deepcopy(spec)
         annotations = {}
 
+        log.debug("[_mutate_pod] modified_spec={}".format(modified_spec))
+        log.debug("[_mutate_pod] request={}".format(request.json["request"]))
+
+        if request.json["request"]["namespace"] not in self.monitored_namespaces:
+            return self._create_patch(spec, modified_spec)
+
         app_name = modified_spec["metadata"]["labels"]["app"]
         ratio = self._get_wss_to_mem_ratio(app_name)
         ratio_annotation = self._get_wss_to_mem_ratio_annotation(ratio)
