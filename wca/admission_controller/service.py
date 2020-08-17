@@ -25,6 +25,7 @@ from wca.admission_controller.app_data_provider import AppDataProvider
 
 log = logging.getLogger(__name__)
 
+
 class AnnotatingService:
     def __init__(self, configuration: Dict[str, str]):
         self.data_provider: AppDataProvider = configuration['data_provider']
