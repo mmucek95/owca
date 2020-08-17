@@ -1,6 +1,5 @@
 bases:
 - stream-small
-- stream-small-ka
 - stream-medium
 - stream-big
 
