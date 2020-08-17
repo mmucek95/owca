@@ -1,23 +1,26 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: stress
+  name: pmbench
 spec:
   template:
     metadata:
       annotations:
         cri-resource-manager.intel.com/memory-type: |
-          stress: dram,pmem
+          pmbench: dram,pmem
+        toptierlimit.cri-resource-manager.intel.com/pod: "10000000000"
         cri-resource-manager.intel.com/cold-start: |
-          stress:
+          pmbench:
             duration: 60s
     spec:
       containers:
-        - name: stress
+        - name: pmbench
           resources:
             requests:
-              cpu: 2
-              memory: 7G
+              cpu: 9
+              memory: 100G
             limits:
-              cpu: 2
-              memory: 7G
+              cpu: 9
+              memory: 100G
+      nodeSelector:
+        kubernetes.io/hostname: node38
