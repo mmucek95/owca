@@ -16,7 +16,7 @@ import base64
 import copy
 from enum import Enum
 import logging
-from typing import Dict
+from typing import Dict, List
 
 import jsonpatch
 from flask import Flask, jsonify, request
@@ -32,6 +32,8 @@ class AnnotatingService:
         self.app = Flask(__name__)
         self.hmem_only_threshold: float = configuration.get('hmem_threshold', 20.0)
         self.dram_only_threshold: float = configuration.get('dram_threshold', 80.0)
+        self.monitored_namespaces: List[str] = \
+            configuration.get('monitored_namespaces', ['default'])
 
         @self.app.route("/mutate", methods=["POST"])
         def mutate():
