@@ -18,6 +18,8 @@ Give access to read configmaps for kube-scheduler:
 ``kubectl apply -f scheduler-policy-role.yaml``
 
 Edit kube-scheduler pod manifest on master node (``/etc/kubernetes/manifests/kube-scheduler.yaml``) to use policy with external scheduler.
+For that, add in command `--policy-configmap=scheduler-policy` and `--policy-configmap-namespace=kube-system`.
+Add to spec extra parametr `dnsPolicy: ClusterFirstWithHostNet`
 
 .. code-block:: yaml
 
@@ -27,6 +29,8 @@ Edit kube-scheduler pod manifest on master node (``/etc/kubernetes/manifests/kub
             ...
             - --policy-configmap=scheduler-policy
             - --policy-configmap-namespace=kube-system
+          ...
+          dnsPolicy: ClusterFirstWithHostNet
    
 
 wca-scheduler deployment
@@ -52,14 +56,10 @@ TLS is required to secure a connection between wca-scheduler and kube-scheduler.
 
 Instructions are based on https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster/
 
-The cfssl tools from https://pkg.cfssl.org/ are required to generate the private key and
-to create a Certificate Signing Request (CSR) next.
-More information about the tools: https://blog.cloudflare.com/introducing-cfssl/ .
-
-After downloading and installing the cfssl tools, you can generate a private key and
-Certificate Signing Request based on the private key.
-In Certificate Signing Request the key ``hosts`` has two values.
-``wca-scheduler.wca-scheduler.pod`` is pod's DNS name.
+You must generate a private key and Certificate Signing Request based on the private key.
+Openssl is used below as a tool, but you can use another tools to generate CSR, for example cfssl.
+In Certificate Signing Request the key ``subjectAltName`` has two values.
+``wca-scheduler.wca-scheduler.svc`` is SVC's DNS name.
 ``100.64.176.36`` is example IP address, where wca-scheduler will be deployed.
 You should change this IP address to address, where the wca-scheduler will be deployed.
 
@@ -69,25 +69,14 @@ Recommended parameters for key generations are:
 
 .. code-block:: shell
 
-    # Download the cfssl tools
-    wget https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64 -O cfssljson
-    wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -O cfssl
-    sudo chmod u+x cfssljson cfssl
+    # Generate a private key
+    openssl ecparam -out key.pem -name prime256v1 -genkey
 
-    # Generate a private key and CSR. Change IP address to wca-scheduler node address!
-    cat << EOF | ./cfssl genkey - | ./cfssljson -bare server
-    {
-      "hosts": [
-        "wca-scheduler.wca-scheduler.pod",
-        "100.64.176.36"
-      ],
-      "CN": "wca-scheduler.wca-scheduler.pod",
-      "key": {
-        "algo": "ecdsa",
-        "size": 256
-      }
-    }
-    EOF
+    # Generate a CSR. Change IP address to wca-scheduler node address!
+    openssl req -new -key key.pem \
+    -subj "/CN=wca-scheduler.wca-scheduler.svc" \
+    -addext "subjectAltName=DNS:wca-scheduler.wca-scheduler.svc,IP:100.64.176.36" \
+    -out server.csr \
 
 The next step is to create CSR Kubernetes object and send it to apiserver.
 It contains previously created CSR.

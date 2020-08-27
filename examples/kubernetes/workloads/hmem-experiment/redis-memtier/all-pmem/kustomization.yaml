@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../../redis-memtier/small
+  - ../../../redis-memtier/medium
+  - ../../../redis-memtier/big
+  - ../../../redis-memtier/big-wss
+  - ../../../redis-memtier/big-hmem
+
+namePrefix: hmem-exp-all-pmem-
+
+commonAnnotations:
+  cri-resource-manager.intel.com/memory-type: |
+    redis: pmem
+  cri-resource-manager.intel.com/cold-start: |
+    redis:
+      duration: 120s

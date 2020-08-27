@@ -73,6 +73,7 @@ class MetricName(str, Enum):
 
     # /proc/PID/based
     TASK_WSS_REFERENCED_BYTES = 'task_wss_referenced_bytes'
+    TASK_WORKING_SET_SIZE_BYTES = 'task_working_set_size_bytes'
 
     # From Kubernetes/Mesos or other orchestrator system.
     # From Kubernetes (requested) or Mesos (resources)
@@ -114,6 +115,8 @@ class MetricName(str, Enum):
     PLATFORM_VMSTAT_NUMA_HINT_FAULTS = 'platform_vmstat_numa_hint_faults'
     PLATFORM_VMSTAT_NUMA_HINT_FAULTS_LOCAL = 'platform_vmstat_numa_hint_faults_local'
     PLATFORM_VMSTAT_PGFAULTS = 'platform_vmstat_pgfaults'
+    PLATFORM_VMSTAT = 'platform_vmstat'
+    PLATFORM_NODE_VMSTAT = 'platform_node_vmstat'
 
     # Perf event based from uncore PMU and derived
     PLATFORM_PMM_BANDWIDTH_READS = 'platform_pmm_bandwidth_reads'
@@ -609,14 +612,29 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
     MetricName.TASK_WSS_REFERENCED_BYTES:
         MetricMetadata(
             'Task referenced bytes during last measurements cycle based on /proc/smaps '
-            'Referenced field, with /proc/PIDs/clear_refs set to 1 accordinn wss_reset_interval.'
+            'Referenced field, with /proc/PIDs/clear_refs set to after task gets stable.'
             'Warning: this is intrusive collection, '
             'because can influence kernel page reclaim policy and add latency.'
             'Refer to https://github.com/brendangregg/wss#wsspl-referenced-page-flag for more '
             'details.',
             MetricType.GAUGE,
             MetricUnit.BYTES,
-            '/procs/PIDS/smaps',
+            '/proc/PIDS/smaps',
+            MetricGranularity.TASK,
+            [],
+            'yes',
+        ),
+    MetricName.TASK_WORKING_SET_SIZE_BYTES:
+        MetricMetadata(
+            'Task referenced bytes during last stable measurements cycle based on /proc/smaps '
+            'Referenced field, with /proc/PIDs/clear_refs set to after task gets stable.'
+            'Warning: this is intrusive collection, '
+            'because can influence kernel page reclaim policy and add latency.'
+            'Refer to https://github.com/brendangregg/wss#wsspl-referenced-page-flag for more '
+            'details.',
+            MetricType.GAUGE,
+            MetricUnit.BYTES,
+            '/proc/PIDS/smaps',
             MetricGranularity.TASK,
             [],
             'yes',
@@ -850,6 +868,27 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricGranularity.PLATFORM,
             [],
             'yes'
+        ),
+    MetricName.PLATFORM_VMSTAT:
+        MetricMetadata(
+            'Virtual Memory stats based on /proc/vmstat - all possible keys or matching regexp',
+            MetricType.COUNTER,
+            MetricUnit.NUMERIC,
+            MetricSource.PROCFS,
+            MetricGranularity.PLATFORM,
+            ['key'],
+            'yes (vmstat)'
+        ),
+    MetricName.PLATFORM_NODE_VMSTAT:
+        MetricMetadata(
+            'Virtual Memory stats based on /sys/devices/system/node/nodeX/vmstat'
+            ' all keys or matching regexp',
+            MetricType.COUNTER,
+            MetricUnit.NUMERIC,
+            MetricSource.PROCFS,
+            MetricGranularity.PLATFORM,
+            ['numa_node', 'key'],
+            'yes (vmstat)'
         ),
     # Perf uncore
     MetricName.PLATFORM_PMM_BANDWIDTH_READS:

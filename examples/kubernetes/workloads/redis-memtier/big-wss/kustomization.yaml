@@ -13,7 +13,7 @@ configMapGenerator:
     - clients=50
     - threads=8
     - keymaximum_gen=800000   # 800k
-    - keymaximum_load=800000  # 800k
+    - keymaximum_load=160000  # 800k
     - datasize=50000          # 40GB (50kB one entry)
 
 patchesStrategicMerge:

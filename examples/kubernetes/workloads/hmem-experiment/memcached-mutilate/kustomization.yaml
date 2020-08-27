@@ -1,0 +1,10 @@
+bases:
+  - all-dram
+  - all-pmem
+  - mix
+
+images:
+- name: mutilate
+  newName: 100.64.176.12:80/wca/mutilate
+  newTag: master
+

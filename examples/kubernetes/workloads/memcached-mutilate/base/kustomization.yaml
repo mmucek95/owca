@@ -17,6 +17,7 @@ configMapGenerator:
     - qps=1000000              # 1M
     - conns=1
     - time=10                  # seconds
+    - ratio=0.0                # set:get, default 0.0
     - extra=
 
 patchesStrategicMerge:
