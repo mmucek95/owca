@@ -1,15 +1,11 @@
 bases:
-- small
-- medium
-- big
-- big-wss
-- big-hmem
-
-commonLabels:
-  fit: 2lm
-  workload: redis-memtier
+  - all-dram
+  - all-pmem
+  - mix
 
 images:
 - name: memtier_benchmark
   newName: 100.64.176.12:80/wca/memtier_benchmark
   newTag: master
+
+

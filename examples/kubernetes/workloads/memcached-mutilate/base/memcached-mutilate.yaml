@@ -70,6 +70,7 @@ spec:
               -s ${target}:11211
               --noload
               --scan $qps:$qps:0
+              --update $ratio
               -r $records
               -V $value
               $extra

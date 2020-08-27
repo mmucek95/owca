@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../../memcached-mutilate/small
+  - ../../../memcached-mutilate/medium
+  - ../../../memcached-mutilate/big
+  - ../../../memcached-mutilate/big-wss
+  - ../../../memcached-mutilate/big-hmem
+  - ../../../memcached-mutilate/medium-hmem
+  - ../../../memcached-mutilate/small-hmem
+
+namePrefix: h-dram-
+
+commonAnnotations:
+  cri-resource-manager.intel.com/memory-type: |
+    memcached: dram
+#  cri-resource-manager.intel.com/cold-start: |
+#    memcached:
+#      duration: 60000s

@@ -1,5 +1,6 @@
 bases:
 - stream-small
+- hmem-stream-small
 - stream-medium
 - stream-big
 

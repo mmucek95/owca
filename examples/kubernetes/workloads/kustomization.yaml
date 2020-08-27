@@ -6,4 +6,4 @@ bases:
 - sysbench-memory
 - specjbb
 - pmbench
-
+- hmem-experiment

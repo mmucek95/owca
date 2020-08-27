@@ -4,6 +4,13 @@ metadata:
   name: pmbench
 spec:
   template:
+    metadata:
+      annotations:
+        cri-resource-manager.intel.com/memory-type: |
+          pmbench: dram,pmem
+        cri-resource-manager.intel.com/cold-start: |
+          pmbench:
+            duration: 60s
     spec:
       containers:
         - name: pmbench
@@ -14,3 +21,7 @@ spec:
             limits:
               cpu: 9
               memory: 100G
+<<<<<<< HEAD
+=======
+
+>>>>>>> ddarczuk/containerd_wca
