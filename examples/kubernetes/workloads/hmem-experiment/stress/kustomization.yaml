@@ -1,0 +1,8 @@
+bases:
+  - all-dram
+  - all-pmem
+
+images:
+- name: stress_ng
+  newName: 100.64.176.12:80/wca/stress_ng
+  newTag: master

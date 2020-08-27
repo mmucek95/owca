@@ -1,0 +1,24 @@
+nameSuffix: -medium-hmem
+bases:
+- ../base
+
+commonLabels:
+  app: memcached-mutilate-medium
+
+configMapGenerator:
+- name: mutilate
+  behavior: merge
+  literals:
+  - records=10000           # 100k
+  - value=40000     # 40kB * 1M <= 50G
+  - qps=40000      # 40k
+
+
+#  - load_records=600000
+#  - records=120000    # 20%
+#  - value=20000      # 80kB * 150K <= 12Gb   old80kB * 1.5M  <= 120GB
+#  - qps=47000 #50000 # 130000
+#  - threads=3
+
+patchesStrategicMerge:
+  - resources.yaml

@@ -1,9 +1,9 @@
-nameSuffix: -big-wss
+nameSuffix: -big-hmemw
 bases:
 - ../base
 
 commonLabels:
-  app: redis-memtier-big-wss
+  app: redis-memtier-big-hmem
   size: big
 
 configMapGenerator:
@@ -12,9 +12,9 @@ configMapGenerator:
   literals:
     - clients=50
     - threads=8
-    - keymaximum_gen=800000   # 800k
-    - keymaximum_load=160000  # 800k
-    - datasize=50000          # 40GB (50kB one entry)
+    - keymaximum_gen=1000000
+    - keymaximum_load=200000
+    - datasize=20000          # 40GB (50kB one entry)
 
 patchesStrategicMerge:
   - resources.yaml

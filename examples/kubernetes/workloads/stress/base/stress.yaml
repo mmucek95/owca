@@ -15,7 +15,8 @@ spec:
         app: stress
     spec:
       nodeSelector:
-        goal: service
+#        goal: service
+        kubernetes.io/hostname: node100
       terminationGracePeriodSeconds: 0
       containers:
         - name: stress

@@ -1,0 +1,5 @@
+bases:
+  - stress
+  - sysbench
+  - redis-memtier
+  - memcached-mutilate
