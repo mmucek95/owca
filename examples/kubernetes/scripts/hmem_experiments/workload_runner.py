@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Dict, List
 
 from runner import default_shell_run
-from kernel_parameters import set_numa_balancing, set_toptier_scale_factor
+from hmem_experiments.kernel_parameters import set_numa_balancing, set_toptier_scale_factor
 
 from time import sleep
 
@@ -55,8 +55,8 @@ def _set_configuration(configuration: ExperimentConfiguration):
     set_toptier_scale_factor(configuration.toptier_scale_factor)
 
 
-def run_workload(workload_names: List, number_of_workloads: Dict,
-                 sleep_duration: int):
+def _run_workload(workload_names: List, number_of_workloads: Dict,
+                  sleep_duration: int):
     for workload_name in workload_names:
         _scale_workload(workload_name, number_of_workloads[workload_name])
     sleep(sleep_duration)
@@ -67,4 +67,4 @@ def run_workload(workload_names: List, number_of_workloads: Dict,
 def run_experiment(workload_names: List[str], number_of_workloads: Dict[str, int],
                    sleep_duration: int, experiment_type: ExperimentType):
     _set_configuration(experiment_type)
-    run_workload(workload_names, number_of_workloads, sleep_duration)
+    _run_workload(workload_names, number_of_workloads, sleep_duration)
