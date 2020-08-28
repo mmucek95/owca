@@ -3,45 +3,47 @@ from enum import Enum
 from typing import Dict, List
 
 from runner import default_shell_run
-from hmem_experiments.kernel_parameters import set_numa_balancing, set_toptier_scale_factor
+from kernel_parameters import set_numa_balancing, set_toptier_scale_factor
 
-from time import sleep
+from time import sleep, time
 
 
-class MemoryType(Enum):
+class ExperimentType(Enum):
     DRAM = 'dram'
     PMEM = 'pmem'
-    HMEM = 'hmem'
+    HMEM_NUMA_BALANCING = 'hmem_numa_balancing'
+    HMEM_NO_NUMA_BALANCING = 'hmem_no_numa_balancig'
+    COLD_START = 'cold_start'
+    TOPTIER = 'toptier'
+    TOPTIER_WITH_COLDSTART = 'toptier_with_coldstart'
 
 
 @dataclass
 class Experiment:
     workloads: List[str]
     number_of_workloads: Dict[str, int]
-    start_timestamp: int = None
-    stop_timestamp: int = None
+    memory_type: ExperimentType
+    start_timestamp: float = None
+    stop_timestamp: float = None
 
 
 @dataclass
 class ExperimentConfiguration:
-    memory_type: MemoryType
     numa_balancing: bool
     toptier_scale_factor: int = 2000
 
 
-class ExperimentType(Enum, ExperimentConfiguration):
-    DRAM = ExperimentConfiguration(
-        MemoryType.DRAM, numa_balancing=True)
-    PMEM = ExperimentConfiguration(
-        MemoryType.PMEM, numa_balancing=True)
-    HMEM_NUMA_BALANCING = ExperimentConfiguration(
-        MemoryType.HMEM, numa_balancing=True)
-    HMEM_NO_NUMA_BALANCING = ExperimentConfiguration(
-        MemoryType.HMEM, numa_balancing=False)
-    COLD_START = HMEM_NUMA_BALANCING
-    TOPTIER = ExperimentConfiguration(
-        MemoryType.HMEM, numa_balancing=True, toptier_scale_factor=10000)
-    TOPTIER_WITH_COLDSTART = TOPTIER
+ONLY_NUMA_BALANCING_CONF = ExperimentConfiguration(numa_balancing=True)
+TOPTIER_CONF = ExperimentConfiguration(numa_balancing=True, toptier_scale_factor=10000)
+
+EXPERIMENT_CONFS = {ExperimentType.DRAM: ONLY_NUMA_BALANCING_CONF,
+                   ExperimentType.PMEM: ONLY_NUMA_BALANCING_CONF,
+                   ExperimentType.HMEM_NUMA_BALANCING: ONLY_NUMA_BALANCING_CONF,
+                   ExperimentType.HMEM_NO_NUMA_BALANCING: ExperimentConfiguration(
+                       numa_balancing=False),
+                   ExperimentType.COLD_START: ONLY_NUMA_BALANCING_CONF,
+                   ExperimentType.TOPTIER: TOPTIER_CONF,
+                   ExperimentType.TOPTIER_WITH_COLDSTART: TOPTIER_CONF}
 
 
 def _scale_workload(workload_name, number_of_workloads=1):
@@ -55,16 +57,17 @@ def _set_configuration(configuration: ExperimentConfiguration):
     set_toptier_scale_factor(configuration.toptier_scale_factor)
 
 
-def _run_workload(workload_names: List, number_of_workloads: Dict,
-                  sleep_duration: int):
+def _run_workloads(workload_names: List, number_of_workloads: Dict,
+                   sleep_duration: int):
     for workload_name in workload_names:
         _scale_workload(workload_name, number_of_workloads[workload_name])
     sleep(sleep_duration)
-    for workload_name in workload_names:
-        _scale_workload(workload_name, 0)
 
 
 def run_experiment(workload_names: List[str], number_of_workloads: Dict[str, int],
                    sleep_duration: int, experiment_type: ExperimentType):
-    _set_configuration(experiment_type)
-    _run_workload(workload_names, number_of_workloads, sleep_duration)
+    _set_configuration(EXPERIMENT_CONFS[experiment_type])
+    start_timestamp = time()
+    _run_workloads(workload_names, number_of_workloads, sleep_duration)
+    stop_timestamp = time()
+    experiment = Experiment(workload_names, number_of_workloads, experiment_type, stop_timestamp)

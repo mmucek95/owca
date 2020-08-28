@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Dict
 
+from runner import scale_down_all_workloads
 from workload_runner import run_experiment, ExperimentType
 
 WORKLOADS = ['hmem-exp-all-dram-redis-memtier-big-wss']
@@ -28,6 +29,7 @@ def run_scenario(scenario: Scenario):
     for workload_counts in scenario.workloads_count:
         run_experiment(scenario.workloads, workload_counts,
                        scenario.sleep_duration, scenario.scenario_type)
+    scale_down_all_workloads(wait_time=10)
 
 
 def main():

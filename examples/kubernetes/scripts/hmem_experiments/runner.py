@@ -497,7 +497,7 @@ def tune_stage(workloads: List[str], sleep_time: int = 25 * MINUTE):
 
 
 def modify_configmap(regexes: List[(str)], experiment_index: int, experiment_root_dir: str):
-    path = '../wca-scheduler/'
+    path = '../../wca-scheduler/'
     config_name = 'config.yaml'
 
     # Replace text in config
