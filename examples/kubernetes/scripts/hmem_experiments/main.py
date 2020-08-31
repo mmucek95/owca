@@ -1,29 +1,6 @@
-from dataclasses import dataclass
-from typing import List, Dict
-
 from runner import scale_down_all_workloads
-from workload_runner import run_experiment, ExperimentType
-
-WORKLOADS = ['hmem-exp-all-dram-redis-memtier-big-wss']
-WORKLOADS_COUNT = {}
-
-
-@dataclass
-class Scenario:
-    # List of workload names used in the experiment
-    workloads: List[str]
-    # List of workload counts in every step of the experiment
-    # e.g. [{'workload1': 1}, {'workload1': 3}] means that in first loop
-    # workload1 will have one instance and three in the second
-    workloads_count: List[Dict[str, int]]
-    sleep_duration: int
-    scenario_type: ExperimentType
-
-
-scenario1 = Scenario(workloads=['hmem-exp-all-dram-redis-memtier-big-wss'],
-                     workloads_count=[{'hmem-exp-all-dram-redis-memtier-big-wss': 1}],
-                     sleep_duration=900, scenario_type=ExperimentType.DRAM)
-
+from workload_runner import run_experiment
+from scenarios import Scenario, SCENARIOS
 
 def run_scenario(scenario: Scenario):
     for workload_counts in scenario.workloads_count:
@@ -33,7 +10,8 @@ def run_scenario(scenario: Scenario):
 
 
 def main():
-    run_scenario(scenario1)
+    for scenario in SCENARIOS:
+        run_scenario(scenario)
 
 
 if __name__ == '__main__':

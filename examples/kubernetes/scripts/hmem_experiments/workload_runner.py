@@ -34,7 +34,7 @@ class ExperimentConfiguration:
 
 
 ONLY_NUMA_BALANCING_CONF = ExperimentConfiguration(numa_balancing=True)
-TOPTIER_CONF = ExperimentConfiguration(numa_balancing=True, toptier_scale_factor=10000)
+TOPTIER_CONF = ExperimentConfiguration(numa_balancing=True, toptier_scale_factor='10000')
 
 EXPERIMENT_CONFS = {ExperimentType.DRAM: ONLY_NUMA_BALANCING_CONF,
                    ExperimentType.PMEM: ONLY_NUMA_BALANCING_CONF,
