@@ -30,20 +30,20 @@ class Experiment:
 @dataclass
 class ExperimentConfiguration:
     numa_balancing: bool
-    toptier_scale_factor: int = 2000
+    toptier_scale_factor: str = '2000'
 
 
 ONLY_NUMA_BALANCING_CONF = ExperimentConfiguration(numa_balancing=True)
 TOPTIER_CONF = ExperimentConfiguration(numa_balancing=True, toptier_scale_factor='10000')
 
 EXPERIMENT_CONFS = {ExperimentType.DRAM: ONLY_NUMA_BALANCING_CONF,
-                   ExperimentType.PMEM: ONLY_NUMA_BALANCING_CONF,
-                   ExperimentType.HMEM_NUMA_BALANCING: ONLY_NUMA_BALANCING_CONF,
-                   ExperimentType.HMEM_NO_NUMA_BALANCING: ExperimentConfiguration(
+                    ExperimentType.PMEM: ONLY_NUMA_BALANCING_CONF,
+                    ExperimentType.HMEM_NUMA_BALANCING: ONLY_NUMA_BALANCING_CONF,
+                    ExperimentType.HMEM_NO_NUMA_BALANCING: ExperimentConfiguration(
                        numa_balancing=False),
-                   ExperimentType.COLD_START: ONLY_NUMA_BALANCING_CONF,
-                   ExperimentType.TOPTIER: TOPTIER_CONF,
-                   ExperimentType.TOPTIER_WITH_COLDSTART: TOPTIER_CONF}
+                    ExperimentType.COLD_START: ONLY_NUMA_BALANCING_CONF,
+                    ExperimentType.TOPTIER: TOPTIER_CONF,
+                    ExperimentType.TOPTIER_WITH_COLDSTART: TOPTIER_CONF}
 
 
 def _scale_workload(workload_name, number_of_workloads=1):
