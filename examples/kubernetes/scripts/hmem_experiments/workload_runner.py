@@ -71,7 +71,7 @@ def experiment_to_json(experiment: Experiment, output_file: str):
                        {'description': EXPERIMENT_DESCRIPTION[experiment.type],
                         'params': {
                             'workloads_count': experiment.number_of_workloads,
-                            'type': experiment.type,
+                            'type': experiment.type.value,
                         }
                         },
                        'experiment': {
