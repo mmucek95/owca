@@ -1,6 +1,6 @@
 nameSuffix: -small
 
-bases:
+resources:
 - ../base
 
 commonLabels:

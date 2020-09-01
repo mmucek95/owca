@@ -8,11 +8,9 @@ resources:
   - ../../../redis-memtier/big-wss
   - ../../../redis-memtier/big-hmem
 
-namePrefix: hmem-exp-all-dram-
+namePrefix: hmem-exp-toptier-
 
 commonAnnotations:
   cri-resource-manager.intel.com/memory-type: |
-    redis: dram
-#  cri-resource-manager.intel.com/cold-start: |
-#    redis:
-#      duration: 60000s
+    redis: pmem, dram
+  toptierlimit.cri-resource-manager.intel.com/pod: "40000000000"

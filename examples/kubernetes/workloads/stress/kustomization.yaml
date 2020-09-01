@@ -1,4 +1,4 @@
-bases:
+resources:
 - stream-small
 - hmem-stream-small
 - stream-medium

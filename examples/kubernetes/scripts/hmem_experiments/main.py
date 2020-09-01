@@ -9,7 +9,7 @@ def run_scenario(scenario: Scenario):
     for workload_count in scenario.workloads_count:
         experiment = run_experiment(scenario.workloads, workload_count,
                                     scenario.sleep_duration, scenario.scenario_type)
-        experiment_to_json(experiment, 'results/{}-{}'.format(scenario.name, time()))
+        experiment_to_json(experiment, 'results/{}-{}.json'.format(scenario.name, time()))
     scale_down_all_workloads(wait_time=10)
 
 

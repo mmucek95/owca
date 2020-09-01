@@ -1,5 +1,5 @@
 nameSuffix: -hbir
-bases:
+resources:
 - ../base
 
 commonLabels:

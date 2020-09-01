@@ -1,5 +1,5 @@
 nameSuffix: -big-hmem
-bases:
+resources:
 - ../base
 
 commonLabels:

@@ -1,5 +1,5 @@
 nameSuffix: -hmem-stream-small
-bases:
+resources:
 - ../base
 
 commonLabels:

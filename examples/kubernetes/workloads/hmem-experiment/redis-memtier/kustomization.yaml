@@ -1,7 +1,8 @@
-bases:
+resources:
   - all-dram
   - all-pmem
   - mix
+  - toptier-limit
 
 images:
 - name: memtier_benchmark

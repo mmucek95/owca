@@ -8,11 +8,11 @@ resources:
   - ../../../redis-memtier/big-wss
   - ../../../redis-memtier/big-hmem
 
-namePrefix: hmem-exp-all-dram-
+namePrefix: hmem-exp-mix-
 
 commonAnnotations:
   cri-resource-manager.intel.com/memory-type: |
-    redis: dram
-#  cri-resource-manager.intel.com/cold-start: |
-#    redis:
-#      duration: 60000s
+    redis: pmem, dram
+  cri-resource-manager.intel.com/cold-start: |
+    redis:
+      duration: 120s
