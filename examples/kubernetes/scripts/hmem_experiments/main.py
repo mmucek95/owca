@@ -1,17 +1,20 @@
+from time import time
+
 from runner import scale_down_all_workloads
-from workload_runner import run_experiment
-from scenarios import Scenario, SCENARIOS
+from workload_runner import run_experiment, experiment_to_json
+from scenarios import Scenario, REDIS_SCENARIOS
 
 
 def run_scenario(scenario: Scenario):
-    for workload_counts in scenario.workloads_count:
-        run_experiment(scenario.workloads, workload_counts,
-                       scenario.sleep_duration, scenario.scenario_type)
+    for workload_count in scenario.workloads_count:
+        experiment = run_experiment(scenario.workloads, workload_count,
+                                    scenario.sleep_duration, scenario.scenario_type)
+        experiment_to_json(experiment, 'results/{}-{}'.format(scenario.scenario_type, time()))
     scale_down_all_workloads(wait_time=10)
 
 
 def main():
-    for scenario in SCENARIOS:
+    for scenario in REDIS_SCENARIOS:
         run_scenario(scenario)
 
 

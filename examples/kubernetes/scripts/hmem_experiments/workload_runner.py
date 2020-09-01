@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List
@@ -18,11 +19,30 @@ class ExperimentType(Enum):
     TOPTIER_WITH_COLDSTART = 'toptier_with_coldstart'
 
 
+EXPERIMENT_DESCRIPTION = {
+    ExperimentType.DRAM: 'workloads running exclusively on dram',
+    ExperimentType.PMEM: 'workloads running exclusively on pmem',
+    ExperimentType.HMEM_NUMA_BALANCING: 'workloads running on dram and pmem '
+                                        'with numa balancing turned on',
+    ExperimentType.HMEM_NO_NUMA_BALANCING: 'workloads running on dram and pmem '
+                                           'with numa balancing turned off',
+    ExperimentType.COLD_START: 'workload starts to run on pmem and after set time passes '
+                               'can move to dram if necessary for workload performance',
+    ExperimentType.TOPTIER: 'workloads have toptier limit; if limit is exceeded some of the '
+                            'memory from dram goes to pmem',
+    ExperimentType.TOPTIER_WITH_COLDSTART: 'workload starts to run on pmem and after set time passes '
+                                           'can move to dram if necessary for workload performance;'
+                                           'workloads have toptier limit; if limit is exceeded some of the '
+                                           'memory from dram goes to pmem'
+}
+
+
 @dataclass
 class Experiment:
     workloads: List[str]
     number_of_workloads: Dict[str, int]
-    memory_type: ExperimentType
+    type: ExperimentType
+    description: str
     start_timestamp: float = None
     stop_timestamp: float = None
 
@@ -44,6 +64,24 @@ EXPERIMENT_CONFS = {ExperimentType.DRAM: ONLY_NUMA_BALANCING_CONF,
                     ExperimentType.COLD_START: ONLY_NUMA_BALANCING_CONF,
                     ExperimentType.TOPTIER: TOPTIER_CONF,
                     ExperimentType.TOPTIER_WITH_COLDSTART: TOPTIER_CONF}
+
+
+def experiment_to_json(experiment: Experiment, output_file: str):
+    experiment_dict = {'meta':
+                       {'description': EXPERIMENT_DESCRIPTION[experiment.type],
+                        'params': {
+                            'workloads_count': experiment.number_of_workloads,
+                            'type': experiment.type,
+                        }
+                        },
+                       'experiment': {
+                           'workloads': experiment.workloads,
+                           'start': experiment.start_timestamp,
+                           'end': experiment.stop_timestamp
+                       }
+                       }
+    with open(output_file, 'w') as experiment_json_file:
+        json.dump(experiment_dict, experiment_json_file)
 
 
 def _scale_workload(workload_name, number_of_workloads=1):
@@ -70,4 +108,5 @@ def run_experiment(workload_names: List[str], number_of_workloads: Dict[str, int
     start_timestamp = time()
     _run_workloads(workload_names, number_of_workloads, sleep_duration)
     stop_timestamp = time()
-    experiment = Experiment(workload_names, number_of_workloads, experiment_type, stop_timestamp)
+    return Experiment(workload_names, number_of_workloads, experiment_type,
+                      EXPERIMENT_DESCRIPTION[experiment_type], start_timestamp, stop_timestamp)
