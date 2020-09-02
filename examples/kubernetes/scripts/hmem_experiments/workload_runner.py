@@ -30,10 +30,11 @@ EXPERIMENT_DESCRIPTION = {
                                'can move to dram if necessary for workload performance',
     ExperimentType.TOPTIER: 'workloads have toptier limit; if limit is exceeded some of the '
                             'memory from dram goes to pmem',
-    ExperimentType.TOPTIER_WITH_COLDSTART: 'workload starts to run on pmem and after set time passes '
-                                           'can move to dram if necessary for workload performance;'
-                                           'workloads have toptier limit; if limit is exceeded some of the '
-                                           'memory from dram goes to pmem'
+    ExperimentType.TOPTIER_WITH_COLDSTART: 'workload starts to run on pmem and after set time '
+                                           'passes can move to dram if necessary for workload '
+                                           'performance; workloads have toptier limit; if '
+                                           'limit is exceeded some of the memory from dram '
+                                           'goes to pmem'
 }
 
 

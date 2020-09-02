@@ -8,7 +8,7 @@ resources:
   - ../../../redis-memtier/big-wss
   - ../../../redis-memtier/big-hmem
 
-namePrefix: hmem-exp-mix-
+namePrefix: hmem-exp-coldstart-
 
 commonAnnotations:
   cri-resource-manager.intel.com/memory-type: |

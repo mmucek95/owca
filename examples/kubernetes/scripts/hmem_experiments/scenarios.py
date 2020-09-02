@@ -21,6 +21,7 @@ class Scenario:
 DRAM_REDIS_MEMTIER = 'hmem-exp-all-dram-redis-memtier-big-wss'
 PMEM_REDIS_MEMTIER = 'hmem-exp-all-pmem-redis-memtier-big-wss'
 DRAM_PMEM_REDIS_MEMTIER = 'hmem-exp-mix-redis-memtier-big-wss'
+DRAM_PMEM_COLDSTART_REDIS_MEMTIER = 'hmem-exp-coldstart-memtier-big-wss'
 
 SLEEP_DURATION = 900
 REDIS_SCENARIOS = [
@@ -44,4 +45,9 @@ REDIS_SCENARIOS = [
              workloads=[DRAM_PMEM_REDIS_MEMTIER],
              workloads_count=[{DRAM_PMEM_REDIS_MEMTIER: x} for x in range(1, 5, 2)],
              sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.HMEM_NO_NUMA_BALANCING),
+    # Mixed coldstart redis memtier scenario
+    Scenario(name='redis-memtier-coldstart',
+             workloads=[DRAM_PMEM_COLDSTART_REDIS_MEMTIER],
+             workloads_count=[{DRAM_PMEM_COLDSTART_REDIS_MEMTIER: x} for x in range(1, 5, 2)],
+             sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.COLD_START)
 ]
