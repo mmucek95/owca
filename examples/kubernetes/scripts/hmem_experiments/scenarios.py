@@ -51,3 +51,26 @@ REDIS_SCENARIOS = [
              workloads_count=[{DRAM_PMEM_COLDSTART_REDIS_MEMTIER: x} for x in range(1, 5, 2)],
              sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.COLD_START)
 ]
+
+# ----------------- MEMCACHED SCENARIOS --------------------------
+DRAM_MEMCACHED_MUTILATE = 'h-dram-memcached-mutilate-big'
+PMEM_MEMCACHED_MUTILATE = 'h-pmem-memcached-mutilate-big'
+DRAM_PMEM_MEMCACHED_MUTILATE = 'h-mix-memcached-mutilate-big'
+
+MEMCACHED_SCENARIOS = [
+    # dram scenario
+    Scenario(name='memcached-mutilate-dram',
+             workloads=[DRAM_MEMCACHED_MUTILATE],
+             workloads_count=[{DRAM_MEMCACHED_MUTILATE: x} for x in range(1, 5, 2)],
+             sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.DRAM),
+    # pmem scenario
+    Scenario(name='memcached-mutilate-pmem',
+             workloads=[PMEM_MEMCACHED_MUTILATE],
+             workloads_count=[{PMEM_MEMCACHED_MUTILATE: x} for x in range(1, 5, 2)],
+             sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.PMEM),
+    # Mixed scenario
+    Scenario(name='memcached-mutilate-hmem-numa-balancing',
+             workloads=[DRAM_PMEM_MEMCACHED_MUTILATE],
+             workloads_count=[{DRAM_PMEM_MEMCACHED_MUTILATE: x} for x in range(1, 5, 2)],
+             sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.HMEM_NUMA_BALANCING)
+]
