@@ -1,4 +1,4 @@
-resources:
+bases:
 - preset-small
 - preset-medium
 - preset-big-60

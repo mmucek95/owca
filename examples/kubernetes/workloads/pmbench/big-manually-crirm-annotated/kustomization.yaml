@@ -1,5 +1,5 @@
 nameSuffix: -big-manually-crirm-annotated
-resources:
+bases:
 - ../base
 
 commonLabels:

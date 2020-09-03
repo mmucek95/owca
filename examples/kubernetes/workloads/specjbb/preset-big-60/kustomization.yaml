@@ -1,5 +1,5 @@
 nameSuffix: -preset-big-60
-resources:
+bases:
 - ../base
 
 commonLabels:

@@ -1,4 +1,4 @@
-resources:
+bases:
   - mysql-hammerdb.yaml
 
 configMapGenerator:

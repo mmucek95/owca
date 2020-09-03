@@ -1,5 +1,5 @@
 nameSuffix: -stream-small
-resources:
+bases:
 - ../base
 
 commonLabels:

@@ -1,5 +1,5 @@
 nameSuffix: -preset-medium
-resources:
+bases:
 - ../base
 
 commonLabels:
