@@ -389,7 +389,7 @@ pipeline {
                     post {
                         always {
                             print('Cleaning workloads and wca...')
-                            sh "kubectl delete -k ${WORKSPACE}/${KUSTOMIZATION_WORKLOAD} --wait=false"
+                            sh "kustomize build ${WORKSPACE}/${KUSTOMIZATION_WORKLOAD} | kubectl delete -f -  --wait=false"
                             sh "kubectl delete -k ${WORKSPACE}/${KUSTOMIZATION_MONITORING} --wait=false"
                             sh "kubectl delete svc prometheus-nodeport-service --namespace prometheus"
                             junit 'unit_results.xml'
@@ -538,7 +538,7 @@ def kustomize_wca_and_workloads_check() {
         {\"op\": \"replace\", \"path\": \"/spec/ports/0/nodePort\", \"value\":30900}]'"
 
     print('Deploy workloads...')
-    sh "kubectl apply -k ${WORKSPACE}/${KUSTOMIZATION_WORKLOAD}"
+    sh "kustomize build ${WORKSPACE}/${KUSTOMIZATION_WORKLOAD} | kubectl apply -f -"
 
     print('Scale up workloads...')
     def list = ["mysql-hammerdb", "stress-stream", "redis-memtier", "sysbench-memory", "memcached-mutilate", "specjbb-preset"]

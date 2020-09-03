@@ -9,11 +9,11 @@ spec:
         - name: redis
           resources:
             requests:
-              cpu: 1
-              memory: 5G
+              cpu: 2
+              memory: 18G
             limits:
-              cpu: 1
-              memory: 5G
+              cpu: 2
+              memory: 18G
         - name: memtier
           resources:
             requests:
