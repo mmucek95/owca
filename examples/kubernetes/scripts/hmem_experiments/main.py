@@ -18,8 +18,8 @@ def main():
     for scenario in REDIS_SCENARIOS:
         run_scenario(scenario)
     # memcached
-    for scenario in MEMCACHED_SCENARIOS:
-        run_scenario(scenario)
+    # for scenario in MEMCACHED_SCENARIOS:
+    #    run_scenario(scenario)
 
 
 if __name__ == '__main__':
