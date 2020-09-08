@@ -5,8 +5,11 @@
 # - HOST_IP - need to explicitly enabled in Pod spec using downward-api
 # - HOSTNAME - default provided by OS
 
+loggers:
+  wca.wss: debug
+
 runner: !MeasurementRunner
-  interval: 5.0
+  interval: 10.0
   node: !KubernetesNode
     cgroup_driver: cgroupfs
     monitored_namespaces: ["default"]
@@ -21,11 +24,11 @@ runner: !MeasurementRunner
 
   extra_labels:
     node: !Env HOSTNAME
-  event_names:
-    - task_cycles # do not remove: USED BY E2E tests
-    - task_instructions
-    - task_offcore_requests_demand_data_rd # required fro R/W characterization
-    - task_offcore_requests_demand_rfo
+  event_names: []
+    # - task_cycles # do not remove: USED BY E2E tests
+    # - task_instructions
+    # - task_offcore_requests_demand_data_rd # required fro R/W characterization
+    # - task_offcore_requests_demand_rfo
   enable_derived_metrics: True
   uncore_event_names:
     - platform_cas_count_reads
@@ -33,5 +36,5 @@ runner: !MeasurementRunner
     - platform_pmm_bandwidth_reads
     - platform_pmm_bandwidth_writes
 
-  wss_reset_interval: 1
+  wss_reset_interval: -1
   gather_hw_mm_topology: True
