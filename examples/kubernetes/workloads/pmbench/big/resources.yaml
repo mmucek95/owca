@@ -21,7 +21,3 @@ spec:
             limits:
               cpu: 9
               memory: 100G
-<<<<<<< HEAD
-=======
-
->>>>>>> ddarczuk/containerd_wca

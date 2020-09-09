@@ -81,7 +81,7 @@ def experiment_to_json(experiment: Experiment, output_file: str):
                            'end': experiment.stop_timestamp
                        }
                        }
-    with open(output_file, 'w') as experiment_json_file:
+    with open(output_file, 'w+') as experiment_json_file:
         json.dump(experiment_dict, experiment_json_file)
 
 

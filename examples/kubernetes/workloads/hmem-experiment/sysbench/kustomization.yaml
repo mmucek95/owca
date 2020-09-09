@@ -1,8 +1,0 @@
-bases:
-  - all-dram
-  - all-pmem
-
-images:
-- name: sysbench
-  newName: 100.64.176.12:80/wca/sysbench
-  newTag: master
