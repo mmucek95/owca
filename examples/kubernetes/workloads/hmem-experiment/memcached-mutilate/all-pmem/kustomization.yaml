@@ -13,8 +13,11 @@ bases:
 namePrefix: h-pmem-
 
 commonAnnotations:
+  cri-resource-manager.intel.com/affinity: |
+    memcached: [ mutilate ]
+    mutilate: [ memcached ]
   cri-resource-manager.intel.com/memory-type: |
     memcached: pmem
-  cri-resource-manager.intel.com/cold-start: |
-    memcached:
-      duration: 120s
+#  cri-resource-manager.intel.com/cold-start: |
+#    memcached:
+#      duration: 120s

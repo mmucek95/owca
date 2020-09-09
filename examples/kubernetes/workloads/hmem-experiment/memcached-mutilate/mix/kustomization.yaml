@@ -14,11 +14,11 @@ namePrefix: h-mix-
 
 commonAnnotations:
   cri-resource-manager.intel.com/affinity: |
-    memcached: [ memcached ]
-    mutilate: [ mutilate ]
-  cri-resource-manager.intel.com/anti-affinity: |
     memcached: [ mutilate ]
     mutilate: [ memcached ]
+#  cri-resource-manager.intel.com/anti-affinity: |
+#    memcached: [ mutilate ]
+#    mutilate: [ memcached ]
 
   cri-resource-manager.intel.com/memory-type: |
     memcached: pmem, dram

@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "data_path": "results/2020-05-05__stepping_single_workloads",
+    "title": "Stepping workloads",
+    "description": "redis",
+    "params": {
+      "instances_count": "",
+      "workloads_count": "almost all",
+      "stabilize_phase_length [min]": [
+        20
+      ]
+    },
+    "changelog": "",
+    "bugs": "",
+    "experiment_type": "ExperimentType.SteppingSingleWorkloadsRun",
+    "experiment_baseline_index": 0,
+    "commit_hash": "",
+    "regexs_map": {
+      "0": [
+        "(r'scre_target: -\d.\d', 'score_target: -2.3')"
+      ],
+      "10": [
+        "(r'score_target: -\d.\d', 'score_target: -6.5')",
+        "(r'cpu_scale_factor: \d.\d', 'cpu_scale_factor: 0.7')"
+      ]
+    }
+  },
+  "experiment": {
+    "1": {
+      "name": "memcache-mutilate",
+      "times": {
+        "dram": {
+          "start": 15123124,
+          "end": 15123144
+        },
+        "pmem": {
+          "start": 15143534,
+          "end": 15112312
+        }
+      }
+    }
+  }
+}
