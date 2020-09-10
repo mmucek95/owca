@@ -1,6 +1,6 @@
 nameSuffix: -big-rnd
 
-bases:
+resources:
 - ../base
 
 patchesStrategicMerge:

@@ -80,6 +80,11 @@ and store them in metrics_storage component.
     (defaults to 0, which means that metric is not collected, e.g. when set to 1
     ``clear_refs`` will be reset every measurement iteration defined by ``interval`` option.)
 
+- ``wss_stable_duration``: **int** = *30*
+
+    Number of stable cycles after which wss is considered stable. Will not have any impact
+    unless wss_reset_interval is greater than 0
+
 - ``include_optional_labels``: **bool** = *False*
 
     Attach following labels to all metrics:
@@ -93,6 +98,13 @@ and store them in metrics_storage component.
     If string is provided it will be used as regexp to extract information from /proc/zoneinfo
     (only matching regexp will be collected). Regexp should contains two groups. When zoneinfo
     is True default value for this regexp can parse values like "nr_pages 1234".
+
+- ``vmstat``: **Union[Str, bool]** = *True*
+
+    By default when vmstat is enabled, all the metrics matching to '{name} {value}'
+    will be collected.  False means disable the collection.
+
+    If string is provided it will be used as regexp to match key.
 
 
 
