@@ -1,8 +1,8 @@
 
-from typing import Dict, List, Tuple, Optional, Union, Iterable, Any
-from connection import PrometheusClient
-from model import Stat, Task, Node, ExperimentMeta, ExperimentType, WStat
-from metrics import Metric, MetricsQueries, Function, FunctionsDescription
+from typing import Dict, List, Tuple
+from analyzer.connection import PrometheusClient
+from analyzer.model import Task, Node
+from analyzer.metrics import Metric, MetricsQueries, Function, FunctionsDescription
 
 
 def build_function_call_id(function: Function, arg: str):
@@ -51,6 +51,7 @@ class AnalyzerQueries:
                                               prom_metric=MetricsQueries[metric])
                 query_result = PrometheusClient.instant_query(query, time)
                 aggregation_name = build_function_call_id(function, arguments)
+
                 if metric in query_results:
                     query_results[metric][aggregation_name] = query_result
                 else:

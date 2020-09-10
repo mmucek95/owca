@@ -1,9 +1,9 @@
 import os
-from typing import Dict, List, Tuple, Optional, Union, Iterable, Any
+from typing import List, Tuple, Optional
 import pandas as pd
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import logging
-from model import ExperimentMeta
+from analyzer.model import ExperimentMeta
 
 @dataclass
 class TxtStagesExporter:

@@ -3,16 +3,15 @@
 import os
 import statistics
 import datetime
-from typing import Dict, List, Tuple, Optional, Union, Iterable, Any
-from shutil import copyfile
+from typing import Dict, List, Union, Iterable
 import pandas as pd
 from runner import ClusterInfoLoader
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-from serializator import AnalyzerQueries
-from view import TxtStagesExporter
-from model import Stat, Task, Node, ExperimentMeta, ExperimentType, WStat
+from analyzer.serializator import AnalyzerQueries
+from analyzer.view import TxtStagesExporter
+from analyzer.model import Stat, Task, Node, ExperimentMeta, ExperimentType, WStat
 
 FORMAT = "%(asctime)-15s:%(levelname)s %(module)s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
@@ -21,6 +20,10 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 WINDOW_LENGTH = 60 * 5
 
+
+# @dataclass
+# class Experiment:
+#
 
 @dataclass
 class Stage:
@@ -255,28 +258,42 @@ class StagesAnalyzer:
             raise Exception('Unsupported experiment type!')
 
     def analyze_hmem_experiment(self, experiment_meta: ExperimentMeta, experiment_index: int):
-        workloads_wstats: List[Dict[str, WStat]] = []
+        workloads_summaries: List[Dict[str, WStat]] = []
         tasks_summaries__per_stage: List[List[Dict]] = []
         node_summaries__per_stage: List[List[Dict]] = []
 
+
+        # workload
         for stage_index in range(0, self.get_stages_count()):
-            workloads_wstat = self.calculate_per_workload_wstats_per_stage(
-                workloads=self.get_all_workloads_in_stage(stage_index),
+            workloads = self.get_all_workloads_in_stage(stage_index)
+            workloads_stat = self.calculate_per_workload_wstats_per_stage(
+                workloads=workloads,
                 stage_index=stage_index)
+            workloads_summaries.append(workloads_stat)
 
-            workloads_wstats.append(workloads_wstat)
 
 
+        # baseline workload
+        workloads = self.get_all_workloads_in_stage(experiment_meta.experiment_baseline_index)
         workloads_baseline = self.calculate_per_workload_wstats_per_stage(
-            workloads=self.get_all_workloads_in_stage(experiment_meta.experiment_baseline_index),
+            workloads=workloads,
             stage_index=experiment_meta.experiment_baseline_index)
 
+
+
+
+        # tasks
         for stage_index in range(0, self.get_stages_count()):
             tasks = self.get_all_tasks_in_stage_on_nodes(stage_index=stage_index,
-                                                         nodes=self.get_all_nodes_in_stage(
-                                                             stage_index))
+                                                         nodes=self.get_all_nodes_in_stage(stage_index))
+
             tasks_summaries = calculate_task_summaries(tasks, workloads_baseline)
             tasks_summaries__per_stage.append(tasks_summaries)
+
+
+
+
+
 
 
         # Transform to DataFrames keeping the same names
