@@ -2,7 +2,7 @@ from time import time
 
 from runner import scale_down_all_workloads
 from workload_runner import run_experiment, experiment_to_json
-from scenarios import Scenario, REDIS_SCENARIOS, MEMCACHED_SCENARIOS
+from scenarios import Scenario, REDIS_SCENARIOS
 
 
 def run_scenario(scenario: Scenario):
