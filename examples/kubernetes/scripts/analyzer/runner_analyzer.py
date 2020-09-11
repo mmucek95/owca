@@ -5,13 +5,13 @@ import statistics
 import datetime
 from typing import Dict, List, Union, Iterable
 import pandas as pd
-from runner import ClusterInfoLoader
 import logging
 from dataclasses import dataclass
 
-from analyzer.serializator import AnalyzerQueries
-from analyzer.view import TxtStagesExporter
-from analyzer.model import Stat, Task, Node, ExperimentMeta, ExperimentType, WStat
+from serializator import AnalyzerQueries
+from view import TxtStagesExporter
+from model import Stat, Task, Node, ExperimentMeta, ExperimentType, WStat, ClusterInfoLoader
+from latex import create_latex_files
 
 FORMAT = "%(asctime)-15s:%(levelname)s %(module)s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
@@ -40,7 +40,6 @@ class Stage:
 
 def calculate_task_summaries(tasks: List[Task], workloads_baseline: Dict[str, WStat]) \
         -> List[Dict[str, Union[float, str]]]:
-
     tasks_summaries = []
     for task in tasks:
         workload = task.workload_name
@@ -123,7 +122,8 @@ class StagesAnalyzer:
         return [nodename for nodename in self.stages[stage_index].nodes]
 
     # wazne
-    def calculate_per_workload_wstats_per_stage(self, workloads: Iterable[str], stage_index: int, filter_nodes: List[str]) -> Dict[str, WStat]:
+    def calculate_per_workload_wstats_per_stage(self, workloads: Iterable[str], stage_index: int,
+                                                filter_nodes: List[str]) -> Dict[str, WStat]:
         """
         Calculate WStat for all workloads in list for stage (stage_index).
         Takes data from all nodes.
@@ -262,7 +262,6 @@ class StagesAnalyzer:
         tasks_summaries__per_stage: List[List[Dict]] = []
         node_summaries__per_stage: List[List[Dict]] = []
 
-
         # workload
         for stage_index in range(0, self.get_stages_count()):
             workloads = self.get_all_workloads_in_stage(stage_index)
@@ -271,16 +270,11 @@ class StagesAnalyzer:
                 stage_index=stage_index)
             workloads_summaries.append(workloads_stat)
 
-
-
         # baseline workload
         workloads = self.get_all_workloads_in_stage(experiment_meta.experiment_baseline_index)
         workloads_baseline = self.calculate_per_workload_wstats_per_stage(
             workloads=workloads,
             stage_index=experiment_meta.experiment_baseline_index)
-
-
-
 
         # tasks
         for stage_index in range(0, self.get_stages_count()):
@@ -290,15 +284,9 @@ class StagesAnalyzer:
             tasks_summaries = calculate_task_summaries(tasks, workloads_baseline)
             tasks_summaries__per_stage.append(tasks_summaries)
 
-
-
-
-
-
-
         # Transform to DataFrames keeping the same names
         workloads_wstats: List[pd.DataFrame] = [WStat.to_dataframe(el.values()) for el in
-                                                workloads_wstats]
+                                                workloads_summaries]
         tasks_summaries__per_stage: List[pd.DataFrame] = [pd.DataFrame(el) for el in
                                                           tasks_summaries__per_stage]
         node_summaries__per_stage: List[pd.DataFrame] = [pd.DataFrame(el) for el in
@@ -351,43 +339,74 @@ def analyze_3stage_experiment(experiment_meta: ExperimentMeta):
             continue
 
 
-
-
 if __name__ == "__main__":
     # print(AnalyzerQueries.query_tasks_list(1598948101))
 
     json = {
-        "experiment": {
-            "1": {
-                "name": "memcache-mutilate",
-                "times": {
-                    "dram": {
-                        "start": 15123124,
-                        "end": 15123144
-                    },
-                    "pmem": {
-                        "start": 15143534,
-                        "end": 15112312
-                    }
-                }
+        "meta":
+            {
+                "description": "workloads running exclusively on dram",
+                "params": {"workloads_count": {"redis-memtier-big-wss-dram": 1}, "type": "dram"}
+            },
+        "experiment":
+            {
+                "workloads":  ["redis-memtier-big-wss-dram"],
+                "start": 1599815979.4867842,
+                "end": 1599816879.6754487
             }
-        }
     }
 
-    for experiment_number in json["experiment"]:
-        print(json["experiment"][experiment_number]["name"])
-        memory_mode = json["experiment"][experiment_number]["times"]
-        for mode in memory_mode:
-            print(memory_mode[mode]["start"])
-            t_end = memory_mode[mode]["end"]
+    json = {"meta": {"description": "workloads running exclusively on dram", "params": {"workloads_count": {"redis-memtier-big-wss-dram": 3}, "type": "dram"}}, "experiment": {"workloads": ["redis-memtier-big-wss-dram"], "start": 1599816879.6770375, "end": 1599817779.9124877}}
 
-            now = datetime.datetime.now()
-            timestamp = datetime.datetime.timestamp(now)
+    # json = {
+    #     "experiment": {
+    #         "1": {
+    #             "name": "memcache-mutilate",
+    #             "times": {
+    #                 "dram": {
+    #                     "start": 15123124,
+    #                     "end": 15123144
+    #                 },
+    #                 "pmem": {
+    #                     "start": 15143534,
+    #                     "end": 15112312
+    #                 }
+    #             }
+    #         }
+    #     }
+    # }
 
-            tasks: List[Task] = AnalyzerQueries.query_tasks_list(timestamp)
-            AnalyzerQueries.query_task_performance_metrics(timestamp, tasks)
+    # for experiment_number in json["experiment"]:
+    #     print(json["experiment"][experiment_number]["name"])
+    #     memory_mode = json["experiment"][experiment_number]["times"]
+    #
+    #     all_experiment_task = {}
+    #     for mode in memory_mode:
+    #         print(memory_mode[mode]["start"])
+    #         t_end = memory_mode[mode]["end"]
+    #
+    #         now = datetime.datetime.now()
+    #         timestamp = datetime.datetime.timestamp(now)
+    #
+    #         tasks: List[Task] = AnalyzerQueries.query_tasks_list(timestamp)
+    #         AnalyzerQueries.query_task_performance_metrics(timestamp, tasks)
+    #
+    #         all_experiment_task[mode] = tasks
+    #         create_latex_files(tasks)
 
 
+    print(json["experiment"]["workloads"])
+    all_experiment_task = {}
+    t_start = json["experiment"]["start"]
+    t_end = json["experiment"]["end"]
+
+    tasks: List[Task] = AnalyzerQueries.query_tasks_list(t_end)
+    AnalyzerQueries.query_task_performance_metrics(t_end, tasks) # , window_length=int(t_end-t_start)
+
+    create_latex_files(tasks)
+
+
+    # create_latex_files(all_experiment_task)
 
     # ClusterInfoLoader.build_singleton()
     #

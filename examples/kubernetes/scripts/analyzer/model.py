@@ -1,10 +1,46 @@
 import os
+
+import json
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 import pandas as pd
-from analyzer.metrics import Metric
-from runner import ClusterInfoLoader
+from metrics import Metric
+
+
+class ClusterInfoLoader:
+    instance = None
+
+    def __init__(self, nodes_file='nodes.json', workloads_file='workloads.json'):
+        with open(nodes_file) as fref:
+            self.nodes = json.load(fref)
+
+        with open(workloads_file) as fref:
+            self.workloads = json.load(fref)
+
+    @staticmethod
+    def build_singleton():
+        ClusterInfoLoader.instance = ClusterInfoLoader()
+
+    @staticmethod
+    def get_instance() -> 'ClusterInfoLoader':
+        return ClusterInfoLoader.instance
+
+    def get_workloads(self) -> List[Dict]:
+        return self.workloads
+
+    def get_workloads_names(self) -> List[str]:
+        return list(self.workloads.keys())
+
+    def get_nodes(self) -> List[Dict]:
+        return self.nodes
+
+    def get_nodes_names(self) -> List[str]:
+        return list(self.nodes.keys())
+
+    def get_aep_nodes(self) -> List[str]:
+        return [node for node, capacity in self.nodes.items() if
+                capacity['membw_read'] > capacity['membw_write']]
 
 
 class ExperimentType(Enum):
