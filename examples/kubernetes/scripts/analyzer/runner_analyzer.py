@@ -2,11 +2,12 @@
 
 import os
 import statistics
-import datetime
+import json
 from typing import Dict, List, Union, Iterable
 import pandas as pd
 import logging
 from dataclasses import dataclass
+
 
 from serializator import AnalyzerQueries
 from view import TxtStagesExporter
@@ -339,24 +340,16 @@ def analyze_3stage_experiment(experiment_meta: ExperimentMeta):
             continue
 
 
+def read_experiment_data(file: str):
+    with open(file, 'r') as experiment_data_file:
+        json_data = json.load(experiment_data_file)
+    return json_data
+
+
 if __name__ == "__main__":
     # print(AnalyzerQueries.query_tasks_list(1598948101))
 
-    json = {
-        "meta":
-            {
-                "description": "workloads running exclusively on dram",
-                "params": {"workloads_count": {"redis-memtier-big-wss-dram": 1}, "type": "dram"}
-            },
-        "experiment":
-            {
-                "workloads":  ["redis-memtier-big-wss-dram"],
-                "start": 1599815979.4867842,
-                "end": 1599816879.6754487
-            }
-    }
-
-    json = {"meta": {"description": "workloads running exclusively on dram", "params": {"workloads_count": {"redis-memtier-big-wss-dram": 3}, "type": "dram"}}, "experiment": {"workloads": ["redis-memtier-big-wss-dram"], "start": 1599816879.6770375, "end": 1599817779.9124877}}
+    experiment_data = read_experiment_data('../hmem_experiments/results/example.json')
 
     # json = {
     #     "experiment": {
@@ -393,7 +386,6 @@ if __name__ == "__main__":
     #
     #         all_experiment_task[mode] = tasks
     #         create_latex_files(tasks)
-
 
     print(json["experiment"]["workloads"])
     all_experiment_task = {}
