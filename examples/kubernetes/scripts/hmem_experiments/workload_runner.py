@@ -40,6 +40,7 @@ EXPERIMENT_DESCRIPTION = {
 
 @dataclass
 class Experiment:
+    name: str
     workloads: List[str]
     number_of_workloads: Dict[str, int]
     type: ExperimentType
@@ -69,7 +70,8 @@ EXPERIMENT_CONFS = {ExperimentType.DRAM: ONLY_NUMA_BALANCING_CONF,
 
 def experiment_to_json(experiment: Experiment, output_file: str):
     experiment_dict = {'meta':
-                       {'description': EXPERIMENT_DESCRIPTION[experiment.type],
+                       {'name': experiment.name,
+                        'description': EXPERIMENT_DESCRIPTION[experiment.type],
                         'params': {
                             'workloads_count': experiment.number_of_workloads,
                             'type': experiment.type.value,
@@ -103,11 +105,11 @@ def _run_workloads(workload_names: List, number_of_workloads: Dict,
     sleep(sleep_duration)
 
 
-def run_experiment(workload_names: List[str], number_of_workloads: Dict[str, int],
+def run_experiment(scenario_name: str, workload_names: List[str], number_of_workloads: Dict[str, int],
                    sleep_duration: int, experiment_type: ExperimentType):
     _set_configuration(EXPERIMENT_CONFS[experiment_type])
     start_timestamp = time()
     _run_workloads(workload_names, number_of_workloads, sleep_duration)
     stop_timestamp = time()
-    return Experiment(workload_names, number_of_workloads, experiment_type,
+    return Experiment(scenario_name, workload_names, number_of_workloads, experiment_type,
                       EXPERIMENT_DESCRIPTION[experiment_type], start_timestamp, stop_timestamp)

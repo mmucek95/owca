@@ -346,85 +346,22 @@ def read_experiment_data(file: str):
     return json_data
 
 
+def main():
+    results_dir = '../hmem_experiments/results'
+    for file in os.listdir(results_dir):
+        experiment_data = read_experiment_data(os.path.join(results_dir, file))
+        print(experiment_data["experiment"]["workloads"])
+        all_experiment_task = {}
+        t_start = experiment_data["experiment"]["start"]
+        t_end = experiment_data["experiment"]["end"]
+        experiment_type = experiment_data["meta"]["params"]["type"]
+
+        tasks: List[Task] = AnalyzerQueries.query_tasks_list(t_end)
+        AnalyzerQueries.query_task_performance_metrics(t_end, tasks)  # , window_length=int(t_end-t_start)
+        create_latex_files(tasks, experiment_type)
+
+
 if __name__ == "__main__":
-    # print(AnalyzerQueries.query_tasks_list(1598948101))
-
-    experiment_data = read_experiment_data('../hmem_experiments/results/example.json')
-
-    # json = {
-    #     "experiment": {
-    #         "1": {
-    #             "name": "memcache-mutilate",
-    #             "times": {
-    #                 "dram": {
-    #                     "start": 15123124,
-    #                     "end": 15123144
-    #                 },
-    #                 "pmem": {
-    #                     "start": 15143534,
-    #                     "end": 15112312
-    #                 }
-    #             }
-    #         }
-    #     }
-    # }
-
-    # for experiment_number in json["experiment"]:
-    #     print(json["experiment"][experiment_number]["name"])
-    #     memory_mode = json["experiment"][experiment_number]["times"]
-    #
-    #     all_experiment_task = {}
-    #     for mode in memory_mode:
-    #         print(memory_mode[mode]["start"])
-    #         t_end = memory_mode[mode]["end"]
-    #
-    #         now = datetime.datetime.now()
-    #         timestamp = datetime.datetime.timestamp(now)
-    #
-    #         tasks: List[Task] = AnalyzerQueries.query_tasks_list(timestamp)
-    #         AnalyzerQueries.query_task_performance_metrics(timestamp, tasks)
-    #
-    #         all_experiment_task[mode] = tasks
-    #         create_latex_files(tasks)
-
-    print(json["experiment"]["workloads"])
-    all_experiment_task = {}
-    t_start = json["experiment"]["start"]
-    t_end = json["experiment"]["end"]
-
-    tasks: List[Task] = AnalyzerQueries.query_tasks_list(t_end)
-    AnalyzerQueries.query_task_performance_metrics(t_end, tasks) # , window_length=int(t_end-t_start)
-
-    create_latex_files(tasks)
+    main()
 
 
-    # create_latex_files(all_experiment_task)
-
-    # ClusterInfoLoader.build_singleton()
-    #
-    # experiment_meta = ExperimentMeta(
-    #     data_path='results/2020-05-05__stepping_single_workloads',
-    #     title='Stepping workloads',
-    #     description='redis',
-    #     params={'instances_count': '', 'workloads_count': 'almost all',
-    #             'stabilize_phase_length [min]': [20]},
-    #     changelog='',
-    #     bugs='',
-    #     experiment_type=ExperimentType.SteppingSingleWorkloadsRun,
-    #     experiment_baseline_index=0,
-    #     commit_hash='', )
-    #
-    # # copy data to summary dir with README
-    # summary_dir = "__SUMMARY_{}__".format(datetime.datetime.now().strftime('%Y-%m-%d'))
-    # logging.debug('Saving all results to {}'.format(summary_dir))
-    # if not os.path.isdir(summary_dir):
-    #     os.mkdir(summary_dir)
-    #
-    # # save changelog
-    # with open(os.path.join(summary_dir, 'README.CHANGELOG'), 'w') as fref:
-    #     fref.write(str(experiment_meta))
-    #     fref.write('\n\n')
-    #
-    # analyze_3stage_experiment(experiment_meta)
-    # copyfile(os.path.join(experiment_meta.data_path, 'runner_analyzer', 'results.txt'),
-    #          os.path.join(summary_dir, experiment_meta.data_path_() + '.summary.txt'))

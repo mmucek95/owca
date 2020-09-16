@@ -9,9 +9,9 @@ from analyzer.model import Task
 from analyzer.metrics import Metric
 
 
-def create_latex_files(tasks: List[Task]):
+def create_latex_files(tasks: List[Task], experiment_type):
     doc = Document("multirow")
-    section = Section('Multirow Test')
+    section = Section(experiment_type)
 
     test5 = Subsection('Tasks')
 
