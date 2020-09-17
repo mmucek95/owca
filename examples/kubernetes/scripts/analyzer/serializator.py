@@ -12,9 +12,11 @@ def build_function_call_id(function: Function, arg: str):
 class AnalyzerQueries:
     """Class used for namespace"""
 
-    @staticmethod
-    def query_tasks_list(time) -> Dict[str, Task]:
-        query_result = PrometheusClient.instant_query(MetricsQueries[Metric.TASK_UP], time)
+    def __init__(self, prometheus_url):
+        self.prometheus_client = PrometheusClient(prometheus_url)
+
+    def query_tasks_list(self, time) -> Dict[str, Task]:
+        query_result = self.prometheus_client.instant_query(MetricsQueries[Metric.TASK_UP], time)
         tasks = {}
         for metric in query_result:
             metric = metric['metric']
@@ -23,8 +25,7 @@ class AnalyzerQueries:
                                     metric['nodename'])
         return tasks
 
-    @staticmethod
-    def query_platform_performance_metrics(time: int, nodes: Dict[str, Node], window_length: int = 120):
+    def query_platform_performance_metrics(self, time: int, nodes: Dict[str, Node]):
         # very important parameter - window_length [s]
 
         metrics = (Metric.PLATFORM_MEM_USAGE, Metric.PLATFORM_CPU_REQUESTED,
@@ -32,14 +33,12 @@ class AnalyzerQueries:
                    Metric.POD_SCHEDULED, Metric.PLATFORM_DRAM_HIT_RATIO, Metric.PLATFORM_WSS_USED)
 
         for metric in metrics:
-            query_results = PrometheusClient.instant_query(MetricsQueries[metric], time)
-            descr = metric.value
+            query_results = self.prometheus_client.instant_query(MetricsQueries[metric], time)
             for result in query_results:
                 nodes[result['metric']['nodename']].performance_metrics[metric] = {'instant': result['value'][1]}
 
-    @staticmethod
-    def query_performance_metrics(time: int, functions_args: List[Tuple[Function, str]],
-                                  metrics: List[Metric], window_length: int) -> Dict[str, Dict]:
+    def query_performance_metrics(self, time: int, functions_args: List[Tuple[Function, str]],
+                                  metrics: List[Metric], window_length: int) -> Dict[Metric, Dict]:
         """performance metrics which needs aggregation over time"""
         query_results: Dict[Metric, Dict] = {}
         for metric in metrics:
@@ -49,7 +48,7 @@ class AnalyzerQueries:
                                               arguments=arguments,
                                               window_length=window_length,
                                               prom_metric=MetricsQueries[metric])
-                query_result = PrometheusClient.instant_query(query, time)
+                query_result = self.prometheus_client.instant_query(query, time)
                 aggregation_name = build_function_call_id(function, arguments)
 
                 if metric in query_results:
@@ -58,15 +57,15 @@ class AnalyzerQueries:
                     query_results[metric] = {aggregation_name: query_result}
         return query_results
 
-    @staticmethod
-    def query_task_performance_metrics(time: int, tasks: Dict[str, Task], window_length: int = 120):
+
+    def query_task_performance_metrics(self, time: int, tasks: Dict[str, Task], window_length: int = 120):
 
         metrics = (Metric.TASK_THROUGHPUT, Metric.TASK_LATENCY)
 
         function_args = ((Function.AVG, ''), (Function.QUANTILE, '0.1,'),
                          (Function.QUANTILE, '0.9,'),)
 
-        query_results = AnalyzerQueries.query_performance_metrics(time, function_args, metrics, window_length)
+        query_results = self.query_performance_metrics(time, function_args, metrics, window_length)
         for metric, query_result in query_results.items():
             for aggregation_name, result in query_result.items():
                 for per_app_result in result:

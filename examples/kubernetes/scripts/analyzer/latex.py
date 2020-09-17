@@ -5,7 +5,6 @@ from typing import Dict, List
 
 from pylatex import Document, Section, Subsection, Tabular, MultiColumn, MultiRow
 
-from analyzer.model import Task
 from analyzer.metrics import Metric
 
 
@@ -13,7 +12,7 @@ class LatexDocument:
     def __init__(self, name):
         self.doc = Document(name)
 
-    def add_experiment_data(self, experiment_name: str, tasks: Dict[str]):
+    def add_experiment_data(self, experiment_name, tasks):
         section = Section(experiment_name)
         workloads_results = Subsection('Tasks')
 
@@ -25,7 +24,7 @@ class LatexDocument:
 
         for task in tasks:
             table.add_row(
-                (tasks[task].name,
+                (tasks[task].name.replace('default/', ''),
                  round(float(tasks[task].performance_metrics[Metric.TASK_LATENCY]['avg']), 3),
                  round(float(tasks[task].performance_metrics[Metric.TASK_THROUGHPUT]['avg']), 3),
                  round(float(tasks[task].performance_metrics[Metric.TASK_LATENCY]['q0.9,']), 3),

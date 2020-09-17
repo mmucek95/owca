@@ -9,10 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 class PrometheusClient:
-    BASE_URL = "http://100.64.176.35:30900"
+    def __init__(self, base_url):
+        # example url: "http://100.64.176.35:30900"
+        self.base_url = base_url
 
-    @staticmethod
-    def instant_query(query, time):
+    def instant_query(self, query, time):
         """ instant query
         https://prometheus.io/docs/prometheus/latest/querying/api/#instant-vectors
 
@@ -22,7 +23,7 @@ class PrometheusClient:
             task_name='default/redis-memtier-big-0'}[3000s])",
             1583395200)
         """
-        urli = PrometheusClient.BASE_URL + '/api/v1/query?{}'.format(parse.urlencode(dict(
+        urli = self.base_url + '/api/v1/query?{}'.format(parse.urlencode(dict(
             query=query, time=time, )))
         try:
             r = requests.get(urli)
