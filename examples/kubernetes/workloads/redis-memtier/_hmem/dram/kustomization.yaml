@@ -3,7 +3,7 @@ kind: Kustomization
 
 nameSuffix: -dram
 
-bases:
+resources:
 - ../../small
 - ../../small-wss
 - ../../medium
@@ -13,4 +13,5 @@ bases:
 
 commonAnnotations:
   cri-resource-manager.intel.com/memory-type: |
-    pmbench: dram
+    service: dram
+    generator: dram
