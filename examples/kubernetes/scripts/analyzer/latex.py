@@ -9,29 +9,33 @@ from analyzer.model import Task
 from analyzer.metrics import Metric
 
 
-def create_latex_files(tasks: List[Task], experiment_type):
-    doc = Document("multirow")
-    section = Section(experiment_type)
+class LatexDocument:
+    def __init__(self, name):
+        self.doc = Document(name)
 
-    test5 = Subsection('Tasks')
+    def add_experiment_data(self, experiment_name: str, tasks: Dict[str]):
+        section = Section(experiment_name)
+        workloads_results = Subsection('Tasks')
 
-    table5 = Tabular('|c|c|c|c|c|')
-    table5.add_hline()
-    # table5.add_row(('X', MultiColumn(5, align='|c|', data=MultiRow(2, data='multi-col-row'))))
-    table5.add_row(('name', 'avg latency', 'avg throughput', 'q0.9 latency', 'q0.9 throughput'))
-    table5.add_hline()
-    for task in tasks:
-        # table5.add_row((MultiColumn(5, align='|c|', data=''), 'X'))
-        table5.add_row(
-            (tasks[task].name,
-             round(float(tasks[task].performance_metrics[Metric.TASK_LATENCY]['avg']), 3),
-             round(float(tasks[task].performance_metrics[Metric.TASK_THROUGHPUT]['avg']), 3),
-             round(float(tasks[task].performance_metrics[Metric.TASK_LATENCY]['q0.9,']), 3),
-             round(float(tasks[task].performance_metrics[Metric.TASK_THROUGHPUT]['q0.9,']), 3))
-        )
-        table5.add_hline()
+        # create table with results
+        table = Tabular('|c|c|c|c|c|')
+        table.add_hline()
+        table.add_row(('name', 'avg latency', 'avg throughput', 'q0.9 latency', 'q0.9 throughput'))
+        table.add_hline()
 
-    test5.append(table5)
-    section.append(test5)
-    doc.append(section)
-    doc.generate_pdf(clean_tex=True)
+        for task in tasks:
+            table.add_row(
+                (tasks[task].name,
+                 round(float(tasks[task].performance_metrics[Metric.TASK_LATENCY]['avg']), 3),
+                 round(float(tasks[task].performance_metrics[Metric.TASK_THROUGHPUT]['avg']), 3),
+                 round(float(tasks[task].performance_metrics[Metric.TASK_LATENCY]['q0.9,']), 3),
+                 round(float(tasks[task].performance_metrics[Metric.TASK_THROUGHPUT]['q0.9,']), 3))
+            )
+            table.add_hline()
+
+        workloads_results.append(table)
+        section.append(workloads_results)
+        self.doc.append(section)
+
+    def generate_pdf(self):
+        self.doc.generate_pdf(clean_tex=True)

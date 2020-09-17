@@ -103,6 +103,8 @@ def _run_workloads(workload_names: List, number_of_workloads: Dict,
     for workload_name in workload_names:
         _scale_workload(workload_name, number_of_workloads[workload_name])
     sleep(sleep_duration)
+    for workload_name in workload_names:
+        _scale_workload(workload_name, 0)
 
 
 def run_experiment(scenario_name: str, workload_names: List[str], number_of_workloads: Dict[str, int],

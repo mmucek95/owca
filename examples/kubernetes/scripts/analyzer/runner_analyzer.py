@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from serializator import AnalyzerQueries
 from view import TxtStagesExporter
 from model import Stat, Task, Node, ExperimentMeta, ExperimentType, WStat, ClusterInfoLoader
-from latex import create_latex_files
+from analyzer.latex import LatexDocument
 
 FORMAT = "%(asctime)-15s:%(levelname)s %(module)s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
@@ -348,6 +348,8 @@ def read_experiment_data(file: str):
 
 def main():
     results_dir = '../hmem_experiments/results'
+    latex_file = LatexDocument('Experiment-results')
+
     for file in os.listdir(results_dir):
         experiment_data = read_experiment_data(os.path.join(results_dir, file))
         print(experiment_data["experiment"]["workloads"])
@@ -355,11 +357,12 @@ def main():
         t_start = experiment_data["experiment"]["start"]
         t_end = experiment_data["experiment"]["end"]
         experiment_type = experiment_data["meta"]["params"]["type"]
+        experiment_name = experiment_data["meta"]["name"]
 
-        tasks: List[Task] = AnalyzerQueries.query_tasks_list(t_end)
+        tasks: Dict[str, Task] = AnalyzerQueries.query_tasks_list(t_end)
         AnalyzerQueries.query_task_performance_metrics(t_end, tasks)  # , window_length=int(t_end-t_start)
-        create_latex_files(tasks, experiment_type)
-
+        latex_file.add_experiment_data(experiment_name, tasks)
+    latex_file.generate_pdf()
 
 if __name__ == "__main__":
     main()
