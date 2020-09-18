@@ -8,7 +8,6 @@ import pandas as pd
 import logging
 from dataclasses import dataclass
 
-
 from serializator import AnalyzerQueries
 from view import TxtStagesExporter
 from model import Stat, Task, Node, ExperimentMeta, ExperimentType, WStat, ClusterInfoLoader
@@ -67,13 +66,16 @@ def calculate_task_summaries(tasks: List[Task], workloads_baseline: Dict[str, WS
                 'avg') == 0 else task.get_throughput('stdev') / task.get_throughput('avg') * 100,
             # ----
             "L_nice[%]": task.get_latency('avg') / workloads_baseline[workload].latency.max * 100,
-            "T_nice[%]": task.get_throughput('avg') / workloads_baseline[workload].throughput.min * 100,
+            "T_nice[%]":
+                task.get_throughput('avg') / workloads_baseline[workload].throughput.min * 100,
             # # ----
             "L_avg[%]": task.get_latency('avg') / workloads_baseline[workload].latency.avg * 100,
-            "T_avg[%]": task.get_throughput('avg') / workloads_baseline[workload].throughput.avg * 100,
+            "T_avg[%]":
+                task.get_throughput('avg') / workloads_baseline[workload].throughput.avg * 100,
             # # ----
             "L_strict[%]": task.get_latency('avg') / workloads_baseline[workload].latency.min * 100,
-            "T_strict[%]": task.get_throughput('avg') / workloads_baseline[workload].throughput.max * 100,
+            "T_strict[%]":
+                task.get_throughput('avg') / workloads_baseline[workload].throughput.max * 100,
             # ----
             "task": task.name,
             "app": task.workload_name,
@@ -156,8 +158,9 @@ class StagesAnalyzer:
                 t_max, t_min, t_avg, t_stdev = max(throughputs_list), min(throughputs_list), \
                                                statistics.mean(throughputs_list), statistics.stdev(
                     throughputs_list)
-                l_max, l_min, l_avg, l_stdev = max(latencies_list), min(latencies_list), \
-                                               statistics.mean(latencies_list), statistics.stdev(latencies_list)
+                l_max, l_min, l_avg, l_stdev = \
+                    max(latencies_list), min(latencies_list),\
+                    statistics.mean(latencies_list), statistics.stdev(latencies_list)
 
             workloads_wstats[workload] = WStat(latency=Stat(l_avg, l_min, l_max, l_stdev),
                                                throughput=Stat(t_avg, t_min, t_max, t_stdev),
@@ -360,12 +363,10 @@ def main():
             experiment_name = experiment_data["meta"]["name"]
             tasks: Dict[str, Task] = analyzer_queries.query_tasks_list(t_end)
             analyzer_queries.query_task_performance_metrics(
-                t_end, tasks, window_length=int(t_end-t_start))
+                t_end, tasks, window_length=int(t_end - t_start))
             latex_file.add_experiment_data(experiment_name, tasks)
     latex_file.generate_pdf()
 
 
 if __name__ == "__main__":
     main()
-
-

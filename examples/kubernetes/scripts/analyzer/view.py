@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import logging
 from analyzer.model import ExperimentMeta
 
+
 @dataclass
 class TxtStagesExporter:
     events_data: Tuple[List, List]

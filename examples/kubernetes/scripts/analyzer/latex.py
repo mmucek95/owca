@@ -1,9 +1,10 @@
 # https://docs.geoserver.org/latest/en/docguide/installlatex.html
-# sudo yum --disablerepo=docker install latexmk texlive-lastpage texlive-collection-fontsrecommended texlive-collection-latexrecommended  texlive-latex-extra
+# sudo yum --disablerepo=docker install latexmk texlive-lastpage
+# texlive-collection-fontsrecommended texlive-collection-latexrecommended
+# texlive-latex-extra
 # https://jeltef.github.io/PyLaTeX/current/examples/multirow.html
-from typing import Dict, List
 
-from pylatex import Document, Section, Subsection, Tabular, MultiColumn, MultiRow
+from pylatex import Document, Section, Subsection, Tabular
 
 from analyzer.metrics import Metric
 
