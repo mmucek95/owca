@@ -4,6 +4,7 @@
 from typing import Dict, List
 
 from pylatex import Document, Section, Subsection, Tabular, MultiColumn, MultiRow
+from pylatex.basic import NewLine, LineBreak
 
 from analyzer.metrics import Metric
 
@@ -11,11 +12,13 @@ from analyzer.metrics import Metric
 class LatexDocument:
     def __init__(self, name):
         self.doc = Document(name)
+        self.sections = {}
 
     def add_experiment_data(self, experiment_name, tasks):
-        section = Section(experiment_name)
-        workloads_results = Subsection('Tasks')
+        if experiment_name not in self.sections.keys():
+            self.sections[experiment_name] = Section(experiment_name)
 
+        workloads_results = Subsection('')
         # create table with results
         table = Tabular('|c|c|c|c|c|')
         table.add_hline()
@@ -33,8 +36,12 @@ class LatexDocument:
             table.add_hline()
 
         workloads_results.append(table)
-        section.append(workloads_results)
-        self.doc.append(section)
+        self.sections[experiment_name].append(workloads_results)
+
+    def _generate_document(self):
+        for section in self.sections.values():
+            self.doc.append(section)
 
     def generate_pdf(self):
+        self._generate_document()
         self.doc.generate_pdf(clean_tex=True)
