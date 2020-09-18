@@ -4,14 +4,14 @@
 from typing import Dict, List
 
 from pylatex import Document, Section, Subsection, Tabular, MultiColumn, MultiRow
-from pylatex.basic import NewLine, LineBreak
 
 from analyzer.metrics import Metric
 
 
 class LatexDocument:
     def __init__(self, name):
-        self.doc = Document(name)
+        geometry_options = {"margin": "0.7in"}
+        self.doc = Document(name, geometry_options=geometry_options)
         self.sections = {}
 
     def add_experiment_data(self, experiment_name, tasks):

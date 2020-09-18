@@ -353,15 +353,15 @@ def main():
     analyzer_queries = AnalyzerQueries('http://100.64.176.200:30900')
 
     for file in os.listdir(results_dir):
-        experiment_data = read_experiment_data(os.path.join(results_dir, file))
-        print(experiment_data["experiment"]["workloads"])
-        t_start = experiment_data["experiment"]["start"]
-        t_end = experiment_data["experiment"]["end"]
-        experiment_name = experiment_data["meta"]["name"]
-
-        tasks: Dict[str, Task] = analyzer_queries.query_tasks_list(t_end)
-        analyzer_queries.query_task_performance_metrics(t_end, tasks, window_length=int(t_end-t_start))
-        latex_file.add_experiment_data(experiment_name, tasks)
+        if os.path.isfile(os.path.join(results_dir, file)):
+            experiment_data = read_experiment_data(os.path.join(results_dir, file))
+            t_start = experiment_data["experiment"]["start"]
+            t_end = experiment_data["experiment"]["end"]
+            experiment_name = experiment_data["meta"]["name"]
+            tasks: Dict[str, Task] = analyzer_queries.query_tasks_list(t_end)
+            analyzer_queries.query_task_performance_metrics(
+                t_end, tasks, window_length=int(t_end-t_start))
+            latex_file.add_experiment_data(experiment_name, tasks)
     latex_file.generate_pdf()
 
 
