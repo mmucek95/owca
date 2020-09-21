@@ -29,33 +29,33 @@ REDIS_SCENARIOS = [
     # Dram redis memtier scenario
     Scenario(name='redis-memtier-dram',
              workloads=[DRAM_REDIS_MEMTIER],
-             workloads_count=[{DRAM_REDIS_MEMTIER: x} for x in range(1, 5, 2)],
+             workloads_count=[{DRAM_REDIS_MEMTIER: x} for x in range(2, 6, 2)],
              sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.DRAM),
     # PMEM redis memtier scenario
     Scenario(name='redis-memtier-pmem',
              workloads=[PMEM_REDIS_MEMTIER],
-             workloads_count=[{PMEM_REDIS_MEMTIER: x} for x in range(1, 5, 2)],
+             workloads_count=[{PMEM_REDIS_MEMTIER: x} for x in range(2, 6, 2)],
              sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.PMEM),
     # Mixed redis memtier scenario with numa balancing
     Scenario(name='redis-memtier-hmem-numa-balancing',
              workloads=[DRAM_PMEM_REDIS_MEMTIER],
-             workloads_count=[{DRAM_PMEM_REDIS_MEMTIER: x} for x in range(1, 5, 2)],
+             workloads_count=[{DRAM_PMEM_REDIS_MEMTIER: x} for x in range(2, 6, 2)],
              sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.HMEM_NUMA_BALANCING),
     # Mixed redis memtier scenario without numa balancing
     Scenario(name='redis-memtier-hmem-no-numa-balancing',
              workloads=[DRAM_PMEM_REDIS_MEMTIER],
-             workloads_count=[{DRAM_PMEM_REDIS_MEMTIER: x} for x in range(1, 5, 2)],
+             workloads_count=[{DRAM_PMEM_REDIS_MEMTIER: x} for x in range(2, 6, 2)],
              sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.HMEM_NO_NUMA_BALANCING),
     # Mixed toptier redis memier scenario
     Scenario(name='redis-memtier-toptier',
              workloads=[DRAM_PMEM_TOPTIER_REDIS_MEMTIER],
-             workloads_count=[{DRAM_PMEM_TOPTIER_REDIS_MEMTIER: x} for x in range(1, 5, 2)],
+             workloads_count=[{DRAM_PMEM_TOPTIER_REDIS_MEMTIER: x} for x in range(2, 6, 2)],
              sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.TOPTIER),
     # Mixed coldstart-toptier redis memtier scenario
     Scenario(name='redis-memtier-coldstart-toptier',
              workloads=[DRAM_PMEM_COLDSTART_REDIS_MEMTIER],
-             workloads_count=[{DRAM_PMEM_COLDSTART_REDIS_MEMTIER: x} for x in range(1, 5, 2)],
-             sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.TOPTIER)
+             workloads_count=[{DRAM_PMEM_COLDSTART_REDIS_MEMTIER: x} for x in range(2, 6, 2)],
+             sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.TOPTIER_WITH_COLDSTART)
 ]
 
 # ----------------- MEMCACHED SCENARIOS --------------------------
@@ -67,16 +67,16 @@ MEMCACHED_SCENARIOS = [
     # dram scenario
     Scenario(name='memcached-mutilate-dram',
              workloads=[DRAM_MEMCACHED_MUTILATE],
-             workloads_count=[{DRAM_MEMCACHED_MUTILATE: x} for x in range(1, 5, 2)],
+             workloads_count=[{DRAM_MEMCACHED_MUTILATE: x} for x in range(2, 6, 2)],
              sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.DRAM),
     # pmem scenario
     Scenario(name='memcached-mutilate-pmem',
              workloads=[PMEM_MEMCACHED_MUTILATE],
-             workloads_count=[{PMEM_MEMCACHED_MUTILATE: x} for x in range(1, 5, 2)],
+             workloads_count=[{PMEM_MEMCACHED_MUTILATE: x} for x in range(2, 6, 2)],
              sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.PMEM),
     # Mixed scenario
     Scenario(name='memcached-mutilate-hmem-numa-balancing',
              workloads=[DRAM_PMEM_MEMCACHED_MUTILATE],
-             workloads_count=[{DRAM_PMEM_MEMCACHED_MUTILATE: x} for x in range(1, 5, 2)],
+             workloads_count=[{DRAM_PMEM_MEMCACHED_MUTILATE: x} for x in range(2, 6, 2)],
              sleep_duration=SLEEP_DURATION, scenario_type=ExperimentType.HMEM_NUMA_BALANCING)
 ]
