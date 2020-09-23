@@ -107,8 +107,9 @@ def _run_workloads(workload_names: List, number_of_workloads: Dict,
         _scale_workload(workload_name, 0)
 
 
-def run_experiment(scenario_name: str, workload_names: List[str], number_of_workloads: Dict[str, int],
-                   sleep_duration: int, experiment_type: ExperimentType):
+def run_experiment(scenario_name: str, workload_names: List[str],
+                   number_of_workloads: Dict[str, int], sleep_duration: int,
+                   experiment_type: ExperimentType):
     _set_configuration(EXPERIMENT_CONFS[experiment_type])
     start_timestamp = time()
     _run_workloads(workload_names, number_of_workloads, sleep_duration)

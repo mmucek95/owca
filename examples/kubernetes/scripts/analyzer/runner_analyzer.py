@@ -282,21 +282,14 @@ class StagesAnalyzer:
 
         # tasks
         for stage_index in range(0, self.get_stages_count()):
-            tasks = self.get_all_tasks_in_stage_on_nodes(stage_index=stage_index,
-                                                         nodes=self.get_all_nodes_in_stage(stage_index))
+            tasks = self.get_all_tasks_in_stage_on_nodes(
+                stage_index=stage_index, nodes=self.get_all_nodes_in_stage(stage_index))
 
             tasks_summaries = calculate_task_summaries(tasks, workloads_baseline)
             tasks_summaries__per_stage.append(tasks_summaries)
 
         # Transform to DataFrames keeping the same names
-        workloads_wstats: List[pd.DataFrame] = [WStat.to_dataframe(el.values()) for el in
-                                                workloads_summaries]
         tasks_summaries__per_stage: List[pd.DataFrame] = [pd.DataFrame(el) for el in
-                                                          tasks_summaries__per_stage]
-        node_summaries__per_stage: List[pd.DataFrame] = [pd.DataFrame(el) for el in
-                                                         node_summaries__per_stage]
-
-        tasks_summaries__per_stage: List[pd.DataFrame] = [el.sort_values(by='node') for el in
                                                           tasks_summaries__per_stage]
 
 

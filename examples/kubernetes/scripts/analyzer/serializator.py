@@ -35,7 +35,8 @@ class AnalyzerQueries:
         for metric in metrics:
             query_results = self.prometheus_client.instant_query(MetricsQueries[metric], time)
             for result in query_results:
-                nodes[result['metric']['nodename']].performance_metrics[metric] = {'instant': result['value'][1]}
+                nodes[result['metric']['nodename']].performance_metrics[metric] = \
+                    {'instant': result['value'][1]}
 
     def query_performance_metrics(self, time: int, functions_args: List[Tuple[Function, str]],
                                   metrics: List[Metric], window_length: int) -> Dict[Metric, Dict]:
@@ -57,7 +58,8 @@ class AnalyzerQueries:
                     query_results[metric] = {aggregation_name: query_result}
         return query_results
 
-    def query_task_performance_metrics(self, time: int, tasks: Dict[str, Task], window_length: int = 120):
+    def query_task_performance_metrics(self, time: int, tasks: Dict[str, Task],
+                                       window_length: int = 120):
 
         metrics = (Metric.TASK_THROUGHPUT, Metric.TASK_LATENCY)
 
