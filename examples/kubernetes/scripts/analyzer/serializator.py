@@ -57,7 +57,6 @@ class AnalyzerQueries:
                     query_results[metric] = {aggregation_name: query_result}
         return query_results
 
-
     def query_task_performance_metrics(self, time: int, tasks: Dict[str, Task], window_length: int = 120):
 
         metrics = (Metric.TASK_THROUGHPUT, Metric.TASK_LATENCY)
