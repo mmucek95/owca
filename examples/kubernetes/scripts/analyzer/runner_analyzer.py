@@ -264,7 +264,6 @@ class StagesAnalyzer:
     def analyze_hmem_experiment(self, experiment_meta: ExperimentMeta, experiment_index: int):
         workloads_summaries: List[Dict[str, WStat]] = []
         tasks_summaries__per_stage: List[List[Dict]] = []
-        node_summaries__per_stage: List[List[Dict]] = []
 
         # workload
         for stage_index in range(0, self.get_stages_count()):
