@@ -139,8 +139,7 @@ pipeline {
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/wca-scheduler:${GIT_COMMIT}
                     BRANCH_IMAGE_NAME=${DOCKER_REPOSITORY_URL}/wca-scheduler:${GIT_BRANCH}
                     IMAGE_DIR=${WORKSPACE}/examples/kubernetes/wca-scheduler
-                    cp -r dist ${IMAGE_DIR}
-                    docker build -t ${IMAGE_NAME} -f ${IMAGE_DIR}/Dockerfile ${IMAGE_DIR}
+                    docker build -t ${IMAGE_NAME} -f ${IMAGE_DIR}/Dockerfile .
                     docker push ${IMAGE_NAME}
                     docker tag ${IMAGE_NAME} ${BRANCH_IMAGE_NAME}
                     docker push ${BRANCH_IMAGE_NAME}
@@ -376,7 +375,7 @@ pipeline {
                     print('Cleaning workloads and wca...')
                     sh "kustomize build ${WORKSPACE}/${KUSTOMIZATION_WORKLOAD} | kubectl delete -f - --wait=false || true"
                     sh "kustomize build ${WORKSPACE}/${KUSTOMIZATION_MONITORING} | kubectl delete -f -  --wait=false || true"
-                    sh "kubectl delete svc prometheus-nodeport-service --namespace prometheus || true"
+                    sh "kubectl delete svc prometheus-nodeport-service --namespace prometheus || true" 
                     junit 'unit_results.xml'
                 }
             }
