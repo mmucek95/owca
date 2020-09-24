@@ -54,7 +54,6 @@ class ExperimentResults:
         stripped_task_name = stripped_task_name.replace('-{}'.format(index), '')
         return stripped_task_name
 
-
     def discover_experiment_data(self, experiment_name, experiment_type, tasks, task_counts):
         if experiment_name not in self.sections.keys():
             self.sections[experiment_name] = Section(experiment_name)
