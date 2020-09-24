@@ -1,4 +1,4 @@
-bases:
+resources:
   - sysbench-memory.yaml
 
 configMapGenerator:

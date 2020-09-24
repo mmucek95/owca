@@ -29,8 +29,6 @@ run_workloads.retry
 .pex-build
 unit_results.xml
 metrics.prom
-cert/node35/apiserver-kubelet-client.crt
-cert/node35/apiserver-kubelet-client.key
 allocations.prom
 wca-bandit.html
 env

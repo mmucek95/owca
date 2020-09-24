@@ -24,9 +24,9 @@ Q09_LATENCY = 'q09_latency'
 Q09_THROUGHPUT = 'q09_throughput'
 
 METRIC_METADATA = {AVG_LATENCY: {NAME: 'Average latency', UNIT: 'ms'},
-                   AVG_THROUGHPUT: {NAME: 'Average throughput', UNIT: 'kops'},
+                   AVG_THROUGHPUT: {NAME: 'Average throughput', UNIT: 'ops'},
                    Q09_LATENCY: {NAME: 'quantile 0.9 latency', UNIT: 'ms'},
-                   Q09_THROUGHPUT: {NAME: 'quantile 0.9 throughput', UNIT: 'kops'}}
+                   Q09_THROUGHPUT: {NAME: 'quantile 0.9 throughput', UNIT: 'ops'}}
 
 
 class ExperimentResults:

@@ -3,8 +3,6 @@ bases:
 - medium
 - big
 - big-wss
-- big-hmem
-- small-hmem
 
 commonLabels:
   fit: 2lm
