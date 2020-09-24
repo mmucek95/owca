@@ -6,7 +6,7 @@
 
 from pylatex import Document, Section, Subsection, Tabular, Figure
 
-from analyzer.metrics import Metric
+from metrics import Metric
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,7 +41,7 @@ class ExperimentResults:
     @staticmethod
     def _get_task_index(task_name):
         index = ''
-        for i in range(len(task_name), 0, -1):
+        for i in range(len(task_name) - 1, 0, -1):
             if task_name[i] == '-':
                 break
             else:

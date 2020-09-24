@@ -1,8 +1,8 @@
 
 from typing import Dict, List, Tuple
-from analyzer.connection import PrometheusClient
-from analyzer.model import Task, Node
-from analyzer.metrics import Metric, MetricsQueries, Function, FunctionsDescription
+from connection import PrometheusClient
+from model import Task, Node
+from metrics import Metric, MetricsQueries, Function, FunctionsDescription
 
 
 def build_function_call_id(function: Function, arg: str):
