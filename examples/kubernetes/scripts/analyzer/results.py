@@ -38,6 +38,23 @@ class ExperimentResults:
                               Q09_LATENCY: {}, Q09_THROUGHPUT: {}}
         self.experiment_types = []
 
+    @staticmethod
+    def _get_task_index(task_name):
+        index = ''
+        for i in range(len(task_name), 0, -1):
+            if task_name[i] == '-':
+                break
+            else:
+                index = task_name[i] + index
+        return index
+
+    def _strip_task_name(self, task_name):
+        index = self._get_task_index(task_name)
+        stripped_task_name = task_name.replace('default/', '')
+        stripped_task_name = stripped_task_name.replace('-{}'.format(index), '')
+        return stripped_task_name
+
+
     def discover_experiment_data(self, experiment_name, experiment_type, tasks, task_counts):
         if experiment_name not in self.sections.keys():
             self.sections[experiment_name] = Section(experiment_name)
@@ -52,7 +69,7 @@ class ExperimentResults:
         table.add_hline()
 
         for task in tasks:
-            task_count = task_counts[task[:-2].replace('default/', '')]
+            task_count = task_counts[self._strip_task_name(task)]
             average_latency = round(float(
                 tasks[task].performance_metrics[Metric.TASK_LATENCY][AVG]), 3)
             average_throughput = round(float(
@@ -72,7 +89,7 @@ class ExperimentResults:
                             Q09_LATENCY: q09_latency,
                             Q09_THROUGHPUT: q09_throughput}
 
-            task_index = task[-1]
+            task_index = self._get_task_index(task)
             for metric_name, metric_value in task_metrics.items():
                 if task_count in self.metric_values[metric_name]:
                     if task_index in self.metric_values[metric_name][task_count]:
