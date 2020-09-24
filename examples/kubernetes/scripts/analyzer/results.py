@@ -6,7 +6,7 @@
 
 from pylatex import Document, Section, Subsection, Tabular, Figure
 
-from analyzer.metrics import Metric
+from metrics import Metric
 
 import matplotlib.pyplot as plt
 import numpy as np

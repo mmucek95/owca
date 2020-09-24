@@ -3,7 +3,7 @@ from typing import List, Tuple, Optional
 import pandas as pd
 from dataclasses import dataclass
 import logging
-from analyzer.model import ExperimentMeta
+from model import ExperimentMeta
 
 
 @dataclass
