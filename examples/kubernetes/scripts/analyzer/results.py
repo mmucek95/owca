@@ -41,7 +41,7 @@ class ExperimentResults:
     @staticmethod
     def _get_task_index(task_name):
         index = ''
-        for i in range(len(task_name), 0, -1):
+        for i in range(len(task_name) - 1, 0, -1):
             if task_name[i] == '-':
                 break
             else:
@@ -53,7 +53,6 @@ class ExperimentResults:
         stripped_task_name = task_name.replace('default/', '')
         stripped_task_name = stripped_task_name.replace('-{}'.format(index), '')
         return stripped_task_name
-
 
     def discover_experiment_data(self, experiment_name, experiment_type, tasks, task_counts):
         if experiment_name not in self.sections.keys():
