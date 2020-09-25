@@ -28,6 +28,8 @@ METRIC_METADATA = {AVG_LATENCY: {NAME: 'Average latency', UNIT: 'ms'},
                    Q09_LATENCY: {NAME: 'quantile 0.9 latency', UNIT: 'ms'},
                    Q09_THROUGHPUT: {NAME: 'quantile 0.9 throughput', UNIT: 'ops'}}
 
+MEMORY_SUFFIXES = ['-dram', '-pmem', '-dram-pmem', '-coldstart-toptier', '-toptier', '-coldstart']
+
 
 class ExperimentResults:
     def __init__(self, name):
@@ -47,6 +49,13 @@ class ExperimentResults:
             else:
                 index = task_name[i] + index
         return index
+
+    @staticmethod
+    def _strip_memory_suffix(task_name):
+        stripped_task_name = task_name
+        for memory_suffix in MEMORY_SUFFIXES:
+            stripped_task_name = stripped_task_name.replace(memory_suffix, '')
+        return stripped_task_name
 
     def _strip_task_name(self, task_name):
         index = self._get_task_index(task_name)
@@ -68,7 +77,8 @@ class ExperimentResults:
         table.add_hline()
 
         for task in tasks:
-            task_count = task_counts[self._strip_task_name(task)]
+            task_name = self._strip_task_name(task)
+            task_count = task_counts[task_name]
             average_latency = round(float(
                 tasks[task].performance_metrics[Metric.TASK_LATENCY][AVG]), 3)
             average_throughput = round(float(
@@ -89,17 +99,19 @@ class ExperimentResults:
                             Q09_THROUGHPUT: q09_throughput}
 
             task_index = self._get_task_index(task)
+            task_name_with_index = task_name + '-' + task_index
+            task_name_with_index = self._strip_memory_suffix(task_name_with_index)
             for metric_name, metric_value in task_metrics.items():
                 if task_count in self.metric_values[metric_name]:
-                    if task_index in self.metric_values[metric_name][task_count]:
-                        self.metric_values[metric_name][task_count][task_index].update(
+                    if task_name_with_index in self.metric_values[metric_name][task_count]:
+                        self.metric_values[metric_name][task_count][task_name_with_index].update(
                             {experiment_type: metric_value})
                     else:
-                        self.metric_values[metric_name][task_count][task_index] = \
+                        self.metric_values[metric_name][task_count][task_name_with_index] = \
                             {experiment_type: metric_value}
                 else:
                     self.metric_values[metric_name][task_count] = \
-                        {task_index: {experiment_type: metric_value}}
+                        {task_name_with_index: {experiment_type: metric_value}}
 
         workloads_results.append(table)
         self.sections[experiment_name].append(workloads_results)
@@ -111,6 +123,7 @@ class ExperimentResults:
     def generate_bar_graph(self, metric_name, metric_values):
         labels = self.experiment_types
         for workload_data in metric_values.values():
+            workload_names = []
             x = np.arange(len(labels))
             width = 0.1
             fig, ax = plt.subplots(figsize=(15, 15))
@@ -121,22 +134,22 @@ class ExperimentResults:
 
             for label in labels:
                 i = 0
-                for workload in workload_data.values():
+                for workload_name, workload in workload_data.items():
                     if label in workload:
                         data_per_workload[i].append(workload[label])
-                    else:
-                        data_per_workload[i].append(0)
+                        workload_names.append(workload_name)
                     i += 1
 
             for i in range(len(data_per_workload)):
                 ax.bar(x - width + i * width, data_per_workload[i],
-                       width, label=i)
+                       width, label=workload_names[i])
 
             ax.set_ylabel('{} ({})'.format(METRIC_METADATA[metric_name][NAME],
                                            METRIC_METADATA[metric_name][UNIT]))
             ax.set_xticks(x)
             ax.set_xticklabels(labels)
-            ax.legend()
+            plt.legend(labels=workload_names, title='Legend',
+                       bbox_to_anchor=(1.05, 1), loc='lower right')
 
             with self.doc.create(Figure(position='htbp')) as plot:
                 plot.add_plot()
