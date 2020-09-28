@@ -55,7 +55,6 @@ EXPERIMENT_DESCRIPTION = {
 @dataclass
 class Experiment:
     name: str
-    workloads: List[str]
     number_of_workloads: Dict[str, int]
     type: ExperimentType
     description: str
@@ -92,7 +91,6 @@ def experiment_to_json(experiment: Experiment, output_file: str):
                         }
                         },
                        'experiment': {
-                           'workloads': experiment.workloads,
                            'start': experiment.start_timestamp,
                            'end': experiment.stop_timestamp
                        }
@@ -112,22 +110,22 @@ def _set_configuration(configuration: ExperimentConfiguration):
     set_toptier_scale_factor(configuration.toptier_scale_factor)
 
 
-def _run_workloads(workload_names: List, number_of_workloads: Dict,
+def _run_workloads(number_of_workloads: Dict,
                    sleep_duration: int):
-    for workload_name in workload_names:
+    for workload_name in number_of_workloads.keys():
         _scale_workload(workload_name, number_of_workloads[workload_name])
     sleep(sleep_duration)
-    for workload_name in workload_names:
+    for workload_name in number_of_workloads.keys():
         _scale_workload(workload_name, 0)
 
 
-def run_experiment(scenario_name: str, workload_names: List[str],
+def run_experiment(scenario_name: str,
                    number_of_workloads: Dict[str, int], sleep_duration: int,
                    experiment_type: ExperimentType):
     _set_configuration(EXPERIMENT_CONFS[experiment_type])
     start_timestamp = time()
     annotate('Running experiment: {}'.format(scenario_name))
-    _run_workloads(workload_names, number_of_workloads, sleep_duration)
+    _run_workloads(number_of_workloads, sleep_duration)
     stop_timestamp = time()
-    return Experiment(scenario_name, workload_names, number_of_workloads, experiment_type,
+    return Experiment(scenario_name, number_of_workloads, experiment_type,
                       EXPERIMENT_DESCRIPTION[experiment_type], start_timestamp, stop_timestamp)
