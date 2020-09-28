@@ -77,13 +77,15 @@ class ExperimentResults:
         stripped_task_name = stripped_task_name.replace('-{}'.format(index), '')
         return stripped_task_name
 
-    def discover_experiment_data(self, experiment_name, experiment_type, tasks, task_counts):
+    def discover_experiment_data(self, experiment_name, experiment_type,
+                                 tasks, task_counts, description):
         if experiment_name not in self.sections.keys():
             self.sections[experiment_name] = Section(experiment_name)
         if experiment_type not in self.experiment_types:
             self.experiment_types.append(experiment_type)
 
         workloads_results = Subsection('')
+        workloads_results.append(description)
         # create table with results
         table = Tabular('|c|c|c|c|c|')
         table.add_hline()

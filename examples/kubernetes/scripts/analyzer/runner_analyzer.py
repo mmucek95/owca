@@ -365,13 +365,15 @@ def main():
         experiment_data = read_experiment_data(os.path.join(results_dir, file))
         t_start = experiment_data["experiment"]["start"]
         t_end = experiment_data["experiment"]["end"]
+        description = experiment_data["experiment"]["description"]
         experiment_name = experiment_data["meta"]["name"]
         experiment_type = experiment_data['meta']['params']['type']
         task_counts = experiment_data['meta']['params']['workloads_count']
         tasks: Dict[str, Task] = analyzer_queries.query_tasks_list(t_end)
         analyzer_queries.query_task_performance_metrics(
             t_end, tasks, window_length=int(t_end - t_start))
-        latex_file.discover_experiment_data(experiment_name, experiment_type, tasks, task_counts)
+        latex_file.discover_experiment_data(experiment_name, experiment_type,
+                                            tasks, task_counts, description)
     latex_file.generate_pdf()
 
 

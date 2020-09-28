@@ -15,7 +15,7 @@
 import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List
+from typing import Dict
 
 from runner import default_shell_run, annotate
 from kernel_parameters import set_numa_balancing, set_toptier_scale_factor
@@ -91,6 +91,7 @@ def experiment_to_json(experiment: Experiment, output_file: str):
                         }
                         },
                        'experiment': {
+                           'description': experiment.description,
                            'start': experiment.start_timestamp,
                            'end': experiment.stop_timestamp
                        }
