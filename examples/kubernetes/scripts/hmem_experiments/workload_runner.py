@@ -1,9 +1,23 @@
+# Copyright (c) 2020 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import json
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List
 
-from runner import default_shell_run
+from runner import default_shell_run, annotate
 from kernel_parameters import set_numa_balancing, set_toptier_scale_factor
 
 from time import sleep, time
@@ -112,6 +126,7 @@ def run_experiment(scenario_name: str, workload_names: List[str],
                    experiment_type: ExperimentType):
     _set_configuration(EXPERIMENT_CONFS[experiment_type])
     start_timestamp = time()
+    annotate('Running experiment: {}'.format(scenario_name))
     _run_workloads(workload_names, number_of_workloads, sleep_duration)
     stop_timestamp = time()
     return Experiment(scenario_name, workload_names, number_of_workloads, experiment_type,
