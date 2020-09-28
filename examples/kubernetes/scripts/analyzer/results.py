@@ -81,11 +81,11 @@ class ExperimentResults:
                                  tasks, task_counts, description):
         if experiment_name not in self.sections.keys():
             self.sections[experiment_name] = Section(experiment_name)
+            self.sections[experiment_name].append(description)
         if experiment_type not in self.experiment_types:
             self.experiment_types.append(experiment_type)
 
         workloads_results = Subsection('')
-        workloads_results.append(description)
         # create table with results
         table = Tabular('|c|c|c|c|c|')
         table.add_hline()
