@@ -22,6 +22,8 @@ from kernel_parameters import set_numa_balancing, set_toptier_scale_factor
 
 from time import sleep, time
 
+from scenarios import Scenario
+
 
 class ExperimentType(Enum):
     DRAM = 'dram'
@@ -112,21 +114,23 @@ def _set_configuration(configuration: ExperimentConfiguration):
 
 
 def _run_workloads(number_of_workloads: Dict,
-                   sleep_duration: int):
+                   sleep_duration: int,
+                   reset_workload=True):
     for workload_name in number_of_workloads.keys():
         _scale_workload(workload_name, number_of_workloads[workload_name])
     sleep(sleep_duration)
-    for workload_name in number_of_workloads.keys():
-        _scale_workload(workload_name, 0)
+    if reset_workload:
+        for workload_name in number_of_workloads.keys():
+            _scale_workload(workload_name, 0)
 
 
-def run_experiment(scenario_name: str,
-                   number_of_workloads: Dict[str, int], sleep_duration: int,
-                   experiment_type: ExperimentType):
-    _set_configuration(EXPERIMENT_CONFS[experiment_type])
+def run_experiment(scenario: Scenario, number_of_workloads):
+    _set_configuration(EXPERIMENT_CONFS[scenario.experiment_type])
     start_timestamp = time()
-    annotate('Running experiment: {}'.format(scenario_name))
-    _run_workloads(number_of_workloads, sleep_duration)
+    annotate('Running experiment: {}'.format(scenario.name))
+    _run_workloads(number_of_workloads, scenario.sleep_duration,
+                   scenario.reset_workloads_between_steps)
     stop_timestamp = time()
-    return Experiment(scenario_name, number_of_workloads, experiment_type,
-                      EXPERIMENT_DESCRIPTION[experiment_type], start_timestamp, stop_timestamp)
+    return Experiment(scenario.name, number_of_workloads, scenario.experiment_type,
+                      EXPERIMENT_DESCRIPTION[scenario.experiment_type],
+                      start_timestamp, stop_timestamp)
