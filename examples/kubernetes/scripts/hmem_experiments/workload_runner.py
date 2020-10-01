@@ -22,17 +22,7 @@ from kernel_parameters import set_numa_balancing, set_toptier_scale_factor
 
 from time import sleep, time
 
-from scenarios import Scenario
-
-
-class ExperimentType(Enum):
-    DRAM = 'dram'
-    PMEM = 'pmem'
-    HMEM_NUMA_BALANCING = 'hmem_numa_balancing'
-    HMEM_NO_NUMA_BALANCING = 'hmem_no_numa_balancig'
-    COLD_START = 'cold_start'
-    TOPTIER = 'toptier'
-    TOPTIER_WITH_COLDSTART = 'toptier_with_coldstart'
+from scenarios import Scenario, ExperimentType
 
 
 EXPERIMENT_DESCRIPTION = {

@@ -13,9 +13,18 @@
 # limitations under the License.
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import List, Dict
 
-from workload_runner import ExperimentType
+
+class ExperimentType(Enum):
+    DRAM = 'dram'
+    PMEM = 'pmem'
+    HMEM_NUMA_BALANCING = 'hmem_numa_balancing'
+    HMEM_NO_NUMA_BALANCING = 'hmem_no_numa_balancig'
+    COLD_START = 'cold_start'
+    TOPTIER = 'toptier'
+    TOPTIER_WITH_COLDSTART = 'toptier_with_coldstart'
 
 
 @dataclass
@@ -63,7 +72,7 @@ WORKLOAD_COUNT = 2
 REDIS_SCENARIOS = [
     # Dram redis memtier scenario
     Scenario(name='redis-memtier-dram',
-             workloads_count=[{REDIS_MEMTIER_BIG_WSS_DRAM: WORKLOAD_COUNT},
+             workloads_count=[{REDIS_MEMTIER_BIG_DRAM: WORKLOAD_COUNT},
                               {REDIS_MEMTIER_BIG_WSS_DRAM: WORKLOAD_COUNT},
                               {REDIS_MEMTIER_MEDIUM_WSS_DRAM: WORKLOAD_COUNT}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.DRAM),

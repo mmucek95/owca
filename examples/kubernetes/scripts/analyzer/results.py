@@ -115,7 +115,10 @@ class ExperimentResults:
         table = self.create_table()
         for task in tasks:
             task_name = self._strip_task_name(task)
-            task_count = task_counts[task_name]
+            if task_name in task_counts:
+                task_count = task_counts[task_name]
+            else:
+                task_count = 0
             average_latency, average_throughput, q09_latency, q09_throughput = \
                 self.get_metrics(tasks[task])
             table.add_row(
@@ -166,6 +169,8 @@ class ExperimentResults:
                     if label in workload:
                         data_per_workload[i].append(workload[label])
                         workload_names.append(workload_name)
+                    else:
+                        data_per_workload[i].append(0)
                     i += 1
 
             for i in range(len(data_per_workload)):
