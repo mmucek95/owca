@@ -65,15 +65,15 @@ spec:
         - record: apm_pmbench_latency
           expr: avg_over_time(apm_pmbench_avg_page_latency[1m]) and ignoring(thread) apm_pmbench_alive
         # common apm metrics
+        - record: apm_pmbench_ops
+          expr: apm_pmbench_ops * on(task_name) group_right() task_up
         - record: apm_pmbench_latency  # msec latency
           expr: apm_pmbench_latency * on(task_name) group_right() task_up / 1e3
-        - record: apm_pmbench_qps
-          expr: apm_pmbench_qps * on(task_name) group_right() task_up
         # T & L per app
-        - record: apm_throughput
-          expr: apm_pmbench_qps
-        - record: apm_latency
-          expr: apm_pmbench_latency
+        - record: apm_throughput # group threads by avg
+          expr: avg by (app, endpoint, exported_namespace, instance, job, namespace, node, pod, podname, service, task_name) (apm_pmbench_ops)
+        - record: apm_latency # group threads by avg
+          expr: avg by (app, endpoint, exported_namespace, instance, job, namespace, node, pod, podname, service, task_name) (apm_pmbench_latency)
 
     - name: sysbench-memory
       rules:
