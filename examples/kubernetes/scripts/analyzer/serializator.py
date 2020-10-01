@@ -89,13 +89,3 @@ class AnalyzerQueries:
                         tasks[task_name].performance_metrics[metric][aggregation_name] = value
                     elif task_name in tasks:
                         tasks[task_name].performance_metrics[metric] = {aggregation_name: value}
-
-    def query_task_numa_pages(self, time: int, tasks: Dict[str, Task], window_length: int = 120):
-        DRAM = 'dram'
-        PMEM = 'pmem'
-        numa_nodes = {DRAM: [0, 1], PMEM: [2, 3]}
-
-        for task in tasks:
-            for numa_node in numa_nodes.values():
-                query_result = self.prometheus_client.instant_query(
-                    '{}[{}s]'.format(Metric.TASK_MEM_NUMA_PAGES, window_length), time)
