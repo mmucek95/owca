@@ -96,7 +96,6 @@ class ExperimentResults:
         avg_throughput = 'avg throughput'
         q09_latency = 'q0.9 latency'
         q09_throughput = 'q0.9 throughput'
-        dram_pmem_memory = 'dram/pmem memory'
         table = Tabular('|c|c|c|c|c|')
         table.add_hline()
         table.add_row((name, avg_latency, avg_throughput, q09_latency, q09_throughput))
