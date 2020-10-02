@@ -68,46 +68,30 @@ REDIS_MEMTIER_MEDIUM_WSS_PMEM = 'redis-memtier-medium-wss-pmem'
 REDIS_MEMTIER_MEDIUM_WSS_TOPTIER = 'redis-memtier-medium-wss-toptier'
 # ----------------- REDIS SCENARIOS --------------------------
 SLEEP_DURATION = 900
-WORKLOAD_COUNT = 2
+WORKLOAD_COUNT = 1
 REDIS_SCENARIOS = [
-    # Dram redis memtier scenario
-    Scenario(name='redis-memtier-dram',
-             workloads_count=[{REDIS_MEMTIER_BIG_DRAM: WORKLOAD_COUNT},
-                              {REDIS_MEMTIER_BIG_WSS_DRAM: WORKLOAD_COUNT},
-                              {REDIS_MEMTIER_MEDIUM_WSS_DRAM: WORKLOAD_COUNT}],
+    # Dram redis memtier big
+    Scenario(name='redis-memtier-big-dram',
+             workloads_count=[{REDIS_MEMTIER_BIG_DRAM: WORKLOAD_COUNT}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.DRAM),
-    # PMEM redis memtier scenario
-    Scenario(name='redis-memtier-pmem',
-             workloads_count=[{REDIS_MEMTIER_BIG_PMEM: WORKLOAD_COUNT},
-                              {REDIS_MEMTIER_BIG_WSS_PMEM: WORKLOAD_COUNT},
-                              {REDIS_MEMTIER_MEDIUM_WSS_PMEM: WORKLOAD_COUNT}],
+    # Pmem redis memtier big
+    Scenario(name='redis-memtier-big-pmem',
+             workloads_count=[{REDIS_MEMTIER_BIG_PMEM: WORKLOAD_COUNT}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.PMEM),
-    # First touch policy redis-big started one by one
-    Scenario(name='redis-memtier-big-first-touch-policy',
-             workloads_count=[{REDIS_MEMTIER_BIG_DRAM_PMEM: 1}, {REDIS_MEMTIER_BIG_DRAM_PMEM: 2}],
-             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NO_NUMA_BALANCING,
-             reset_workloads_between_steps=False),
-    # First touch policy redis-big-wss started one by one
-    Scenario(name='redis-memtier-big-wss-first-touch-policy',
-             workloads_count=[{REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 1}, {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 2}],
-             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NO_NUMA_BALANCING,
-             reset_workloads_between_steps=False),
-    # First touch policy redis-big started together
+    # First touch policy redis memtier big
     Scenario(name='redis-memtier-big-first-touch-policy',
              workloads_count=[{REDIS_MEMTIER_BIG_DRAM_PMEM: WORKLOAD_COUNT}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NO_NUMA_BALANCING),
-    # Mixed redis memtier big scenario with numa balancing
-    Scenario(name='redis-memtier-dram-pmem-autonuma-on',
+    # Numa balancing redis memtier big
+    Scenario(name='redis-memtier-big-numa-balancing',
              workloads_count=[{REDIS_MEMTIER_BIG_DRAM_PMEM: WORKLOAD_COUNT}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NUMA_BALANCING),
-    # Toptier redis memtier scenario
-    Scenario(name='redis-memtier-toptier',
+    # Toptier limit redis memtier big
+    Scenario(name='redis-memtier-big-toptier-limit',
              workloads_count=[{REDIS_MEMTIER_BIG_TOPTIER: WORKLOAD_COUNT}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER),
-    # Toptier and coldstart redis big, medium and big wss
-    Scenario(name='redis-memtier-toptier-coldstart-redis-big',
-             workloads_count=[{REDIS_MEMTIER_BIG_COLDSTART_TOPTIER: WORKLOAD_COUNT},
-                              {REDIS_MEMTIER_MEDIUM_WSS_COLDSTART_TOPTIER: WORKLOAD_COUNT},
-                              {REDIS_MEMTIER_BIG_WSS_COLDSTART_TOPTIER: 1}],
-             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER_WITH_COLDSTART),
+    # Toptier with coldstart redis memtier big
+    Scenario(name='redis-memtier-toptier-coldstart',
+             workloads_count=[{REDIS_MEMTIER_BIG_COLDSTART_TOPTIER: WORKLOAD_COUNT}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER_WITH_COLDSTART)
 ]
