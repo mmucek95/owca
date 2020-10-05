@@ -83,3 +83,36 @@ MEMCACHED_SCENARIOS = [
              workloads_count=[{DRAM_PMEM_MEMCACHED_MUTILATE: x} for x in range(2, 6, 2)],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NUMA_BALANCING)
 ]
+
+# ----------------- PMBENCH SCENARIOS --------------------------
+DRAM_PMBENCH = 'pmbench-big-wss-dram'
+PMEM_PMBENCH = 'pmbench-big-wss-pmem'
+DRAM_PMEM_PMBENCH = 'pmbench-big-wss-dram-pmem'
+DRAM_PMEM_COLDSTART_PMBENCH = 'pmbench-big-wss-coldstart-toptier'
+DRAM_PMEM_TOPTIER_PMBENCH = 'pmbench-big-wss-toptier'
+PMBENCH_SCENARIOS = [
+    # Dram pmbench scenario
+    Scenario(name='pmbench-dram',
+             workloads_count=[{DRAM_PMBENCH: x} for x in range(2, 6, 2)],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.DRAM),
+    # PMEM pmbench scenario
+    Scenario(name='pmbench-pmem',
+             workloads_count=[{PMEM_PMBENCH: x} for x in range(2, 6, 2)],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.PMEM),
+    # Mixed pmbench scenario with numa balancing
+    Scenario(name='pmbench-hmem-numa-balancing',
+             workloads_count=[{DRAM_PMEM_PMBENCH: x} for x in range(2, 6, 2)],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NUMA_BALANCING),
+    # Mixed pmbench scenario without numa balancing
+    Scenario(name='pmbench-hmem-no-numa-balancing',
+             workloads_count=[{DRAM_PMEM_PMBENCH: x} for x in range(2, 6, 2)],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NO_NUMA_BALANCING),
+    # Mixed toptier pmbench scenario
+    Scenario(name='pmbench-toptier',
+             workloads_count=[{DRAM_PMEM_TOPTIER_PMBENCH: x} for x in range(2, 6, 2)],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER),
+    # Mixed coldstart-toptier pmbench scenario
+    Scenario(name='pmbench-coldstart-toptier',
+             workloads_count=[{DRAM_PMEM_COLDSTART_PMBENCH: x} for x in range(2, 6, 2)],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER_WITH_COLDSTART)
+]
