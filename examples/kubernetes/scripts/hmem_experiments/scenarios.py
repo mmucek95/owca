@@ -58,7 +58,7 @@ REDIS_MEMTIER_BIG_WSS_TOPTIER = 'redis-memtier-big-wss-toptier'
 REDIS_MEMTIER_MEDIUM_COLDSTART_TOPTIER = 'redis-memtier-medium-coldstart-toptier'
 REDIS_MEMTIER_MEDIUM_DRAM = 'redis-memtier-medium-dram'
 REDIS_MEMTIER_MEDIUM_DRAM_PMEM = 'redis-memtier-medium-dram-pmem'
-REDIS_MEDIUM_MEMTIER_PMEM = 'redis-memtier-medium-pmem'
+REDIS_MEMTIER_MEDIUM_PMEM = 'redis-memtier-medium-pmem'
 REDIS_MEMTIER_MEDIUM_TOPTIER = 'redis-memtier-medium-toptier'
 #     ------------- MEDIUM WSS -------------
 REDIS_MEMTIER_MEDIUM_WSS_COLDSTART_TOPTIER = 'redis-memtier-medium-wss-coldstart-toptier'
