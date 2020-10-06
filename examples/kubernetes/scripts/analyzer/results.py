@@ -36,10 +36,10 @@ AVG_LATENCY = 'avg_latency'
 AVG_THROUGHPUT = 'avg_throughput'
 Q09_LATENCY = 'q09_latency'
 Q09_THROUGHPUT = 'q09_throughput'
-NUMA_NODE_0 = 'numa_node_0'
-NUMA_NODE_1 = 'numa_node_1'
-NUMA_NODE_2 = 'numa_node_2'
-NUMA_NODE_3 = 'numa_node_3'
+NUMA_NODE_0 = 'node0'
+NUMA_NODE_1 = 'node1'
+NUMA_NODE_2 = 'node2'
+NUMA_NODE_3 = 'node3'
 
 
 METRIC_METADATA = {AVG_LATENCY: {NAME: 'Average latency', UNIT: 'ms'},
@@ -53,7 +53,8 @@ MEMORY_SUFFIXES = ['-dram', '-pmem', '-dram-pmem', '-coldstart-toptier', '-topti
 class ExperimentResults:
     def __init__(self, name):
         geometry_options = {"margin": "0.2in"}
-        self.doc = Document(name, geometry_options=geometry_options)
+        self.doc = Document(name, geometry_options=geometry_options,
+                            font_size='small')
         self.sections = {}
         self.metric_values = {AVG_LATENCY: {}, AVG_THROUGHPUT: {},
                               Q09_LATENCY: {}, Q09_THROUGHPUT: {},
@@ -96,8 +97,11 @@ class ExperimentResults:
             task.performance_metrics[Metric.TASK_THROUGHPUT][Q09]), 3)
         numa_nodes = []
         for i in range(0, 4):
-            numa_nodes.append(round(float(
-                task.performance_metrics[Metric.TASK_MEM_NUMA_PAGES][str(i)] * 4096 / 1e9), 3))
+            value = float(task.performance_metrics[Metric.TASK_MEM_NUMA_PAGES][str(i)]) * 4096 / 1e9
+            rounded_value = round(value, 3)
+            if value > rounded_value == 0:
+                rounded_value = '> 0'
+            numa_nodes.append(rounded_value)
         return average_latency, average_throughput, q09_latency, q09_throughput, numa_nodes
 
     @staticmethod
@@ -198,6 +202,6 @@ class ExperimentResults:
 
     def generate_pdf(self):
         self._generate_document()
-        for metric_name, metric_values in self.metric_values.items():
-            self.generate_bar_graph(metric_name, metric_values)
+        #for metric_name, metric_values in self.metric_values.items():
+        #    self.generate_bar_graph(metric_name, metric_values)
         self.doc.generate_pdf(clean_tex=True)

@@ -85,9 +85,9 @@ class AnalyzerQueries:
                 for per_app_result in result:
                     task_name = per_app_result['metric']['task_name']
                     value = per_app_result['value'][1]
-                    if metric in tasks[task_name].performance_metrics:
+                    if task_name in tasks and metric in tasks[task_name].performance_metrics:
                         tasks[task_name].performance_metrics[metric][aggregation_name] = value
-                    else:
+                    elif task_name in tasks:
                         tasks[task_name].performance_metrics[metric] = {aggregation_name: value}
 
     def query_task_numa_pages(self, time: int, tasks: Dict[str, Task]):
