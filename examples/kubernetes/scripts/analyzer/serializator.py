@@ -90,12 +90,14 @@ class AnalyzerQueries:
                     else:
                         tasks[task_name].performance_metrics[metric] = {aggregation_name: value}
 
-    def query_task_numa_pages(self, time: int, tasks: Dict[str, Task], window_length: int = 120):
-        DRAM = 'dram'
-        PMEM = 'pmem'
-        numa_nodes = {DRAM: [0, 1], PMEM: [2, 3]}
-
-        for task in tasks:
-            for numa_node in numa_nodes.values():
-                query_result = self.prometheus_client.instant_query(
-                    '{}[{}s]'.format(Metric.TASK_MEM_NUMA_PAGES, window_length), time)
+    def query_task_numa_pages(self, time: int, tasks: Dict[str, Task]):
+        query_result = self.prometheus_client.instant_query('{}'.format(
+            'task_mem_numa_pages'), time)
+        for metric in query_result:
+            task_name = metric['metric']['task_name']
+            value = metric['value'][1]
+            numa_node = metric['metric']['numa_node']
+            if Metric.TASK_MEM_NUMA_PAGES not in tasks[task_name].performance_metrics:
+                tasks[task_name].performance_metrics[Metric.TASK_MEM_NUMA_PAGES] =\
+                    {'0': 0, '1': 0, '2': 0, '3': 0}
+            tasks[task_name].performance_metrics[Metric.TASK_MEM_NUMA_PAGES][numa_node] = value

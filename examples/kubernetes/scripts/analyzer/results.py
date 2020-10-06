@@ -36,6 +36,11 @@ AVG_LATENCY = 'avg_latency'
 AVG_THROUGHPUT = 'avg_throughput'
 Q09_LATENCY = 'q09_latency'
 Q09_THROUGHPUT = 'q09_throughput'
+NUMA_NODE_0 = 'numa_node_0'
+NUMA_NODE_1 = 'numa_node_1'
+NUMA_NODE_2 = 'numa_node_2'
+NUMA_NODE_3 = 'numa_node_3'
+
 
 METRIC_METADATA = {AVG_LATENCY: {NAME: 'Average latency', UNIT: 'ms'},
                    AVG_THROUGHPUT: {NAME: 'Average throughput', UNIT: 'ops'},
@@ -47,11 +52,13 @@ MEMORY_SUFFIXES = ['-dram', '-pmem', '-dram-pmem', '-coldstart-toptier', '-topti
 
 class ExperimentResults:
     def __init__(self, name):
-        geometry_options = {"margin": "0.7in"}
+        geometry_options = {"margin": "0.2in"}
         self.doc = Document(name, geometry_options=geometry_options)
         self.sections = {}
         self.metric_values = {AVG_LATENCY: {}, AVG_THROUGHPUT: {},
-                              Q09_LATENCY: {}, Q09_THROUGHPUT: {}}
+                              Q09_LATENCY: {}, Q09_THROUGHPUT: {},
+                              NUMA_NODE_0: {}, NUMA_NODE_1: {},
+                              NUMA_NODE_2: {}, NUMA_NODE_3: {}}
         self.experiment_types = []
 
     @staticmethod
@@ -87,7 +94,11 @@ class ExperimentResults:
             task.performance_metrics[Metric.TASK_LATENCY][Q09]), 3)
         q09_throughput = round(float(
             task.performance_metrics[Metric.TASK_THROUGHPUT][Q09]), 3)
-        return average_latency, average_throughput, q09_latency, q09_throughput
+        numa_nodes = []
+        for i in range(0, 4):
+            numa_nodes.append(round(float(
+                task.performance_metrics[Metric.TASK_MEM_NUMA_PAGES][str(i)] * 4096 / 1e9), 3))
+        return average_latency, average_throughput, q09_latency, q09_throughput, numa_nodes
 
     @staticmethod
     def create_table():
@@ -96,10 +107,10 @@ class ExperimentResults:
         avg_throughput = 'avg throughput'
         q09_latency = 'q0.9 latency'
         q09_throughput = 'q0.9 throughput'
-        dram_pmem_memory = 'dram/pmem memory'
-        table = Tabular('|c|c|c|c|c|')
+        table = Tabular('|c|c|c|c|c|c|c|c|c|')
         table.add_hline()
-        table.add_row((name, avg_latency, avg_throughput, q09_latency, q09_throughput))
+        table.add_row((name, avg_latency, avg_throughput, q09_latency, q09_throughput,
+                       NUMA_NODE_0, NUMA_NODE_1, NUMA_NODE_2, NUMA_NODE_3))
         table.add_hline()
         return table
 
@@ -116,11 +127,12 @@ class ExperimentResults:
         for task in tasks:
             task_name = self._strip_task_name(task)
             task_count = task_counts[task_name]
-            average_latency, average_throughput, q09_latency, q09_throughput = \
+            average_latency, average_throughput, q09_latency, q09_throughput, numa_nodes = \
                 self.get_metrics(tasks[task])
             table.add_row(
                 (tasks[task].name.replace('default/', ''), average_latency,
-                 average_throughput, q09_latency, q09_throughput)
+                 average_throughput, q09_latency, q09_throughput, numa_nodes[0],
+                 numa_nodes[1], numa_nodes[2], numa_nodes[3])
             )
             table.add_hline()
             task_metrics = {AVG_LATENCY: average_latency,
