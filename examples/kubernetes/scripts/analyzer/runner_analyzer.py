@@ -359,7 +359,7 @@ def main():
     results_dir = '../hmem_experiments/results'
     latex_file = ExperimentResults('Experiment-results')
 
-    analyzer_queries = AnalyzerQueries('http://100.64.176.200:30900')
+    analyzer_queries = AnalyzerQueries('http://100.64.176.35:30900')
 
     for file in os.listdir(results_dir):
         experiment_data = read_experiment_data(os.path.join(results_dir, file))
@@ -372,6 +372,7 @@ def main():
         tasks: Dict[str, Task] = analyzer_queries.query_tasks_list(t_end)
         analyzer_queries.query_task_performance_metrics(
             t_end, tasks, window_length=int(t_end - t_start))
+        analyzer_queries.query_task_numa_pages(t_end, tasks)
         latex_file.discover_experiment_data(experiment_name, experiment_type,
                                             tasks, task_counts, description)
     latex_file.generate_pdf()
