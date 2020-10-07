@@ -359,7 +359,7 @@ def main():
     results_dir = '../hmem_experiments/results'
     latex_file = ExperimentResults('Experiment-results')
 
-    analyzer_queries = AnalyzerQueries('http://100.64.176.200:30900')
+    analyzer_queries = AnalyzerQueries('http://100.64.176.35:30900')
 
     for file in os.listdir(results_dir):
         experiment_data = read_experiment_data(os.path.join(results_dir, file))
