@@ -69,10 +69,12 @@ class Function(Enum):
     AVG = 'avg_over_time'
     QUANTILE = 'quantile_over_time'
     STDEV = 'stddev_over_time'
+    RATE = 'rate'
 
 
 FunctionsDescription = {
     Function.AVG: 'avg',
     Function.QUANTILE: 'q',
     Function.STDEV: 'stdev',
+    Function.RATE: 'rate'
 }
