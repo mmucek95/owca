@@ -74,7 +74,8 @@ class AnalyzerQueries:
     def query_task_performance_metrics(self, time: int, tasks: Dict[str, Task],
                                        window_length: int = 120):
 
-        metrics = (Metric.TASK_THROUGHPUT, Metric.TASK_LATENCY)
+        metrics = (Metric.TASK_THROUGHPUT, Metric.TASK_LATENCY,
+                   Metric.TASK_MEM_MBW_LOCAL, Metric.TASK_MEM_MBW_REMOTE)
 
         function_args = ((Function.AVG, ''), (Function.QUANTILE, '0.1,'),
                          (Function.QUANTILE, '0.9,'),)
@@ -85,9 +86,9 @@ class AnalyzerQueries:
                 for per_app_result in result:
                     task_name = per_app_result['metric']['task_name']
                     value = per_app_result['value'][1]
-                    if metric in tasks[task_name].performance_metrics:
+                    if task_name in tasks and metric in tasks[task_name].performance_metrics:
                         tasks[task_name].performance_metrics[metric][aggregation_name] = value
-                    else:
+                    elif task_name in tasks:
                         tasks[task_name].performance_metrics[metric] = {aggregation_name: value}
 
     def query_task_numa_pages(self, time: int, tasks: Dict[str, Task]):
