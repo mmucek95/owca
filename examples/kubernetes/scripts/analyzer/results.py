@@ -183,6 +183,8 @@ class ExperimentResults:
                     if label in workload:
                         data_per_workload[i].append(workload[label])
                         workload_names.append(workload_name)
+                    else:
+                        data_per_workload[i].append(0)
                     i += 1
 
             for i in range(len(data_per_workload)):
