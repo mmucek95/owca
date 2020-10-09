@@ -91,7 +91,7 @@ and store them in metrics_storage component.
     to treat referenced value as stable.
     Memory bandwidth or referenced bytes are divide by this value.
     E.g. 100 means membw/100 which equals to 1% of memory bandwidth.
-    
+
 - ``include_optional_labels``: **bool** = *False*
 
     Attach following labels to all metrics:
