@@ -74,7 +74,8 @@ class AnalyzerQueries:
     def query_task_performance_metrics(self, time: int, tasks: Dict[str, Task],
                                        window_length: int = 120):
 
-        metrics = (Metric.TASK_THROUGHPUT, Metric.TASK_LATENCY)
+        metrics = (Metric.TASK_THROUGHPUT, Metric.TASK_LATENCY,
+                   Metric.TASK_MEM_MBW_LOCAL, Metric.TASK_MEM_MBW_REMOTE)
 
         function_args = ((Function.AVG, ''), (Function.QUANTILE, '0.1,'),
                          (Function.QUANTILE, '0.9,'),)

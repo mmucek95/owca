@@ -36,6 +36,7 @@ AVG_LATENCY = 'avg_latency'
 AVG_THROUGHPUT = 'avg_throughput'
 Q09_LATENCY = 'q09_latency'
 Q09_THROUGHPUT = 'q09_throughput'
+MBW = 'mbw'
 NUMA_NODE_0 = 'node0'
 NUMA_NODE_1 = 'node1'
 NUMA_NODE_2 = 'node2'
@@ -52,14 +53,14 @@ MEMORY_SUFFIXES = ['-dram', '-pmem', '-dram-pmem', '-coldstart-toptier', '-topti
 
 class ExperimentResults:
     def __init__(self, name):
-        geometry_options = {"margin": "0.2in"}
+        geometry_options = {"margin": "0.2in", "landscape": True}
         self.doc = Document(name, geometry_options=geometry_options,
                             font_size='small')
         self.sections = {}
         self.metric_values = {AVG_LATENCY: {}, AVG_THROUGHPUT: {},
                               Q09_LATENCY: {}, Q09_THROUGHPUT: {},
                               NUMA_NODE_0: {}, NUMA_NODE_1: {},
-                              NUMA_NODE_2: {}, NUMA_NODE_3: {}}
+                              NUMA_NODE_2: {}, NUMA_NODE_3: {}, MBW: {}}
         self.experiment_types = []
 
     @staticmethod
