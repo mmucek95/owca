@@ -28,6 +28,15 @@ class AnalyzerQueries:
     def __init__(self, prometheus_url):
         self.prometheus_client = PrometheusClient(prometheus_url)
 
+    def query_node_list(self, time) -> List[Node]:
+        query_result = self.prometheus_client.instant_query(MetricsQueries[Metric.WCA_UP], time)
+        nodes = []
+        for metric in query_result:
+            node = metric['metric']['host']
+            nodes.append(node)
+
+        return nodes
+
     def query_tasks_list(self, time) -> Dict[str, Task]:
         query_result = self.prometheus_client.instant_query(MetricsQueries[Metric.TASK_UP], time)
         tasks = {}
@@ -38,18 +47,28 @@ class AnalyzerQueries:
                                     metric['nodename'])
         return tasks
 
+    def query_platform_performance_metric(self, time: int, node: Node, metric: Metric):
+        # very important parameter - window_length [s]
+
+        metrics = (Metric.PLATFORM_MEM_USAGE, Metric.PLATFORM_CPU_REQUESTED,
+                   Metric.PLATFORM_CPU_UTIL, #Metric.PLATFORM_MBW_TOTAL, Metric.POD_SCHEDULED,
+                   Metric.PLATFORM_DRAM_HIT_RATIO, Metric.PLATFORM_WSS_USED)
+
+        query_results = self.prometheus_client.instant_query(MetricsQueries[metric], time)
+        for result in query_results:
+            nodes[result['metric']['nodename']].performance_metrics[metric] = {'instant': result['value'][1]}
+
     def query_platform_performance_metrics(self, time: int, nodes: Dict[str, Node]):
         # very important parameter - window_length [s]
 
         metrics = (Metric.PLATFORM_MEM_USAGE, Metric.PLATFORM_CPU_REQUESTED,
-                   Metric.PLATFORM_CPU_UTIL, Metric.PLATFORM_MBW_TOTAL,
-                   Metric.POD_SCHEDULED, Metric.PLATFORM_DRAM_HIT_RATIO, Metric.PLATFORM_WSS_USED)
+                   Metric.PLATFORM_CPU_UTIL, #Metric.PLATFORM_MBW_TOTAL, Metric.POD_SCHEDULED,
+                   Metric.PLATFORM_DRAM_HIT_RATIO, Metric.PLATFORM_WSS_USED)
 
         for metric in metrics:
             query_results = self.prometheus_client.instant_query(MetricsQueries[metric], time)
             for result in query_results:
-                nodes[result['metric']['nodename']].performance_metrics[metric] = \
-                    {'instant': result['value'][1]}
+                nodes[result['metric']['nodename']].performance_metrics[metric] = {'instant': result['value'][1]}
 
     def query_performance_metrics(self, time: int, functions_args: List[Tuple[Function, str]],
                                   metrics: List[Metric], window_length: int) -> Dict[Metric, Dict]:

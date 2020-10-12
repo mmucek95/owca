@@ -30,11 +30,24 @@ runner: !MeasurementRunner
 #    - task_offcore_requests_demand_data_rd # required fro R/W characterization
 #    - task_offcore_requests_demand_rfo
   enable_derived_metrics: True
+#  uncore_event_names:
+#    - platform_cas_count_reads
+#    - platform_cas_count_writes
+#    - platform_pmm_bandwidth_reads
+#    - platform_pmm_bandwidth_writes
   uncore_event_names:
-    - platform_cas_count_reads
-    - platform_cas_count_writes
-    - platform_pmm_bandwidth_reads
-    - platform_pmm_bandwidth_writes
+    # grupa 1
+    -   - platform_cas_count_reads
+        - platform_cas_count_writes
+        - platform_pmm_bandwidth_reads
+        - platform_pmm_bandwidth_writes
+    # grupa 2
+    -   - platform_upi_rxl_flits
+        - platform_upi_txl_flits
+    # grupa 3
+    -   - platform_rpq_occupancy
+        - platform_rpq_inserts
+        - platform_imc_clockticks
 
   # WorkingSetSize configuration: reset every 20 minutes, require 5 minutes of stable increase less then 1%)
   # (assuming 1 minute collection interval).

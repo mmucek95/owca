@@ -369,6 +369,14 @@ def main():
         experiment_name = experiment_data["meta"]["name"]
         experiment_type = experiment_data['meta']['params']['type']
         task_counts = experiment_data['meta']['params']['workloads_count']
+
+        nodes: List[str] = analyzer_queries.query_node_list(t_end)
+        no: List[Node] = []
+        for node_name in nodes:
+            no.append(Node(name=node_name))
+
+        analyzer_queries.query_platform_performance_metrics(t_end, no)
+
         tasks: Dict[str, Task] = analyzer_queries.query_tasks_list(t_end)
         analyzer_queries.query_task_performance_metrics(
             t_end, tasks, window_length=int(t_end - t_start))
