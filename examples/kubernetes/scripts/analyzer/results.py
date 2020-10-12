@@ -178,7 +178,7 @@ class ExperimentResults:
                  numa_nodes[1], numa_nodes[2], numa_nodes[3], mbw_local, mbw_remote)
             )
             table.add_hline()
-            self._keep_task_metrics(task, task_name, task_count, experiment_type,average_latency,
+            self._keep_task_metrics(task, task_name, task_count, experiment_type, average_latency,
                                     average_throughput, q09_latency, q09_throughput)
 
         workloads_results.append(table)
