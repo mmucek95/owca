@@ -19,6 +19,7 @@
 # https://jeltef.github.io/PyLaTeX/current/examples/multirow.html
 
 from pylatex import Document, Section, Subsection, Tabular, Figure
+from pylatex.utils import bold
 
 from metrics import Metric
 
@@ -43,12 +44,16 @@ NUMA_NODE_0 = 'node0'
 NUMA_NODE_1 = 'node1'
 NUMA_NODE_2 = 'node2'
 NUMA_NODE_3 = 'node3'
+NUMA_PAGES = 'numa_pages'
 
 
 METRIC_METADATA = {AVG_LATENCY: {NAME: 'Average latency', UNIT: 'ms'},
                    AVG_THROUGHPUT: {NAME: 'Average throughput', UNIT: 'ops'},
                    Q09_LATENCY: {NAME: 'quantile 0.9 latency', UNIT: 'ms'},
-                   Q09_THROUGHPUT: {NAME: 'quantile 0.9 throughput', UNIT: 'ops'}}
+                   Q09_THROUGHPUT: {NAME: 'quantile 0.9 throughput', UNIT: 'ops'},
+                   NUMA_PAGES: {NAME: 'task numa pages', UNIT: 'GB'},
+                   MBW_LOCAL: {NAME: 'memory mbw local', UNIT: 'GB/s'},
+                   MBW_REMOTE: {NAME: 'memory mbw remote', UNIT: 'GB/s'}}
 
 MEMORY_SUFFIXES = ['-dram', '-pmem', '-dram-pmem', '-coldstart-toptier', '-toptier', '-coldstart']
 
@@ -90,26 +95,29 @@ class ExperimentResults:
         return stripped_task_name
 
     @staticmethod
-    def get_metrics(task):
-        average_latency = round(float(
-            task.performance_metrics[Metric.TASK_LATENCY][AVG]), 3)
-        average_throughput = round(float(
-            task.performance_metrics[Metric.TASK_THROUGHPUT][AVG]), 3)
-        q09_latency = round(float(
-            task.performance_metrics[Metric.TASK_LATENCY][Q09]), 3)
-        q09_throughput = round(float(
-            task.performance_metrics[Metric.TASK_THROUGHPUT][Q09]), 3)
+    def round_metric(metric):
+        rounded_metric = round(metric, 3)
+        if metric > rounded_metric == 0:
+            rounded_metric = '> 0'
+        return rounded_metric
+
+    def get_metrics(self, task):
+        average_latency = self.round_metric(
+            float(task.performance_metrics[Metric.TASK_LATENCY][AVG]))
+        average_throughput = self.round_metric(
+            float(task.performance_metrics[Metric.TASK_THROUGHPUT][AVG]))
+        q09_latency = self.round_metric(float(task.performance_metrics[Metric.TASK_LATENCY][Q09]))
+        q09_throughput = self.round_metric(float(
+            task.performance_metrics[Metric.TASK_THROUGHPUT][Q09]))
         numa_nodes = []
         for i in range(0, 4):
             value = float(task.performance_metrics[Metric.TASK_MEM_NUMA_PAGES][str(i)]) * 4096 / 1e9
-            rounded_value = round(value, 3)
-            if value > rounded_value == 0:
-                rounded_value = '> 0'
+            rounded_value = self.round_metric(value)
             numa_nodes.append(rounded_value)
-        mbw_local = round(float(
-            task.performance_metrics[Metric.TASK_MEM_MBW_LOCAL][RATE]) / 1e9, 3)
-        mbw_remote = round(float(
-            task.performance_metrics[Metric.TASK_MEM_MBW_REMOTE][RATE]) / 1e9, 3)
+        mbw_local = self.round_metric(
+            float(task.performance_metrics[Metric.TASK_MEM_MBW_LOCAL][RATE]) / 1e9)
+        mbw_remote = self.round_metric(
+            float(task.performance_metrics[Metric.TASK_MEM_MBW_REMOTE][RATE]) / 1e9)
         return average_latency, average_throughput, q09_latency, q09_throughput, \
             numa_nodes, mbw_local, mbw_remote
 
@@ -177,6 +185,8 @@ class ExperimentResults:
         self.sections[experiment_name].append(workloads_results)
 
     def _generate_document(self):
+        legend = self.create_unit_legend()
+        self.doc.append(legend)
         for section in self.sections.values():
             self.doc.append(section)
 
@@ -217,6 +227,23 @@ class ExperimentResults:
                 plot.add_plot()
                 caption = '{} workload(s)'.format(str(len(data_per_workload)))
                 plot.add_caption(caption)
+
+    def create_unit_legend(self):
+        rows = '|c|'
+        for _ in METRIC_METADATA:
+            rows += 'c|'
+        table = Tabular(rows)
+        title_row = [bold('Metric')]
+        unit_row = [bold('Unit')]
+        for metric in METRIC_METADATA.keys():
+            title_row.append(METRIC_METADATA[metric][NAME])
+            unit_row.append(METRIC_METADATA[metric][UNIT])
+        table.add_hline()
+        table.add_row(tuple(title_row))
+        table.add_hline()
+        table.add_row(tuple(unit_row))
+        table.add_hline()
+        return table
 
     def generate_pdf(self):
         self._generate_document()
