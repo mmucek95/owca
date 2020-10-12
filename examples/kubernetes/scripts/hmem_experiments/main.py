@@ -32,7 +32,6 @@ def run_scenario(scenario: Scenario, save_dir):
 
 
 def main():
-
     # redis
     for scenario in BASE_REDIS_SCENARIOS:
         run_scenario(scenario, 'base_results')

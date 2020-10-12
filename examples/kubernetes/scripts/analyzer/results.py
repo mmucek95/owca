@@ -110,8 +110,8 @@ class ExperimentResults:
             task.performance_metrics[Metric.TASK_MEM_MBW_LOCAL][RATE]) / 1e9, 3)
         mbw_remote = round(float(
             task.performance_metrics[Metric.TASK_MEM_MBW_REMOTE][RATE]) / 1e9, 3)
-        return average_latency, average_throughput, q09_latency, q09_throughput,\
-               numa_nodes, mbw_local, mbw_remote
+        return average_latency, average_throughput, q09_latency, q09_throughput, \
+            numa_nodes, mbw_local, mbw_remote
 
     @staticmethod
     def create_table():
@@ -129,6 +129,26 @@ class ExperimentResults:
         table.add_hline()
         return table
 
+    def _keep_task_metrics(self, task, task_name, task_count, experiment_type,
+                           average_latency, average_throughput, q09_latency, q09_throughput):
+        task_metrics = {AVG_LATENCY: average_latency,
+                        AVG_THROUGHPUT: average_throughput,
+                        Q09_LATENCY: q09_latency,
+                        Q09_THROUGHPUT: q09_throughput}
+        task_index = self._get_task_index(task)
+        task_name_with_index = self._strip_memory_suffix(task_name + '-' + task_index)
+        for metric_name, metric_value in task_metrics.items():
+            if task_count in self.metric_values[metric_name]:
+                if task_name_with_index in self.metric_values[metric_name][task_count]:
+                    self.metric_values[metric_name][task_count][task_name_with_index].update(
+                        {experiment_type: metric_value})
+                else:
+                    self.metric_values[metric_name][task_count][task_name_with_index] = \
+                        {experiment_type: metric_value}
+            else:
+                self.metric_values[metric_name][task_count] = \
+                    {task_name_with_index: {experiment_type: metric_value}}
+
     def discover_experiment_data(self, experiment_name, experiment_type,
                                  tasks, task_counts, description):
         if experiment_name not in self.sections.keys():
@@ -143,30 +163,15 @@ class ExperimentResults:
             task_name = self._strip_task_name(task)
             task_count = task_counts[task_name]
             average_latency, average_throughput, q09_latency, q09_throughput,\
-            numa_nodes, mbw_local, mbw_remote = self.get_metrics(tasks[task])
+                numa_nodes, mbw_local, mbw_remote = self.get_metrics(tasks[task])
             table.add_row(
                 (tasks[task].name.replace('default/', ''), average_latency,
                  average_throughput, q09_latency, q09_throughput, numa_nodes[0],
                  numa_nodes[1], numa_nodes[2], numa_nodes[3], mbw_local, mbw_remote)
             )
             table.add_hline()
-            task_metrics = {AVG_LATENCY: average_latency,
-                            AVG_THROUGHPUT: average_throughput,
-                            Q09_LATENCY: q09_latency,
-                            Q09_THROUGHPUT: q09_throughput}
-            task_index = self._get_task_index(task)
-            task_name_with_index = self._strip_memory_suffix(task_name + '-' + task_index)
-            for metric_name, metric_value in task_metrics.items():
-                if task_count in self.metric_values[metric_name]:
-                    if task_name_with_index in self.metric_values[metric_name][task_count]:
-                        self.metric_values[metric_name][task_count][task_name_with_index].update(
-                            {experiment_type: metric_value})
-                    else:
-                        self.metric_values[metric_name][task_count][task_name_with_index] = \
-                            {experiment_type: metric_value}
-                else:
-                    self.metric_values[metric_name][task_count] = \
-                        {task_name_with_index: {experiment_type: metric_value}}
+            self._keep_task_metrics(task, task_name, task_count, experiment_type,average_latency,
+                                    average_throughput, q09_latency, q09_throughput)
 
         workloads_results.append(table)
         self.sections[experiment_name].append(workloads_results)
@@ -215,6 +220,6 @@ class ExperimentResults:
 
     def generate_pdf(self):
         self._generate_document()
-        #for metric_name, metric_values in self.metric_values.items():
+        # for metric_name, metric_values in self.metric_values.items():
         #    self.generate_bar_graph(metric_name, metric_values)
         self.doc.generate_pdf(clean_tex=True)
