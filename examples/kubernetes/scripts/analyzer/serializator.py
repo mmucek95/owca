@@ -47,16 +47,18 @@ class AnalyzerQueries:
                                     metric['nodename'])
         return tasks
 
-    def query_platform_performance_metric(self, time: int, node: Node, metric: Metric):
-        # very important parameter - window_length [s]
+    def query_platform_performance_metric(self, time: int, metric: Metric, node: str = ""):
+        parametrize_query = MetricsQueries[metric].replace('{}', '{{nodename="{node}"}}'.format(node=node))
+        query_results = self.prometheus_client.instant_query(parametrize_query, time)
 
-        metrics = (Metric.PLATFORM_MEM_USAGE, Metric.PLATFORM_CPU_REQUESTED,
-                   Metric.PLATFORM_CPU_UTIL, #Metric.PLATFORM_MBW_TOTAL, Metric.POD_SCHEDULED,
-                   Metric.PLATFORM_DRAM_HIT_RATIO, Metric.PLATFORM_WSS_USED)
-
-        query_results = self.prometheus_client.instant_query(MetricsQueries[metric], time)
-        for result in query_results:
-            nodes[result['metric']['nodename']].performance_metrics[metric] = {'instant': result['value'][1]}
+        if query_results:
+            # return socket 0, socket 1; socket 0 always first;
+            if query_results[0]['metric']['socket'] == 0:
+                return query_results[0]['value'][1], query_results[1]['value'][1]
+            else:
+                return query_results[1]['value'][1], query_results[1]['value'][0]
+        else:
+            return 0, 0
 
     def query_platform_performance_metrics(self, time: int, nodes: Dict[str, Node]):
         # very important parameter - window_length [s]

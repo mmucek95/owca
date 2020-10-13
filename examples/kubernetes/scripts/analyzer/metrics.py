@@ -15,8 +15,6 @@
 from enum import Enum
 
 
-
-
 class Metric(Enum):
     TASK_THROUGHPUT = 'task_throughput'
     TASK_LATENCY = 'task_latency'
@@ -85,6 +83,19 @@ class Metric(Enum):
     # - platform_upi_bandwidth_bytes_per_second
     # wyswietlic sume po socketa (ale nie per pmu/mc)z 3 grupy:
     # - platform_rpq_read_latency_seconds
+
+
+platform_metrics = [
+    Metric.PLATFORM_PMM_READS_BYTES_PER_SECOND,
+    Metric.PLATFORM_PMM_WRITES_BYTES_PER_SECOND,
+    Metric.PLATFORM_PMM_TOTAL_BYTES_PER_SECOND,
+    Metric.PLATFORM_DRAM_READS_BYTES_PER_SECOND,
+    Metric.PLATFORM_DRAM_WRITES_BYTES_PER_SECOND,
+    Metric.PLATFORM_DRAM_TOTAL_BYTES_PER_SECOND,
+    Metric.PLATFORM_DRAM_HIT_RATIO,
+    Metric.PLATFORM_UPI_BANDWIDTH_BYTES_PER_SECOND,
+    Metric.PLATFORM_RPQ_READ_LATENCY_SECONDS,
+]
 
 
 MetricsQueries = {

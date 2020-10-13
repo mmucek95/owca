@@ -20,7 +20,8 @@
 
 from pylatex import Document, Section, Subsection, Tabular, Figure
 
-from metrics import Metric
+import metrics
+from metrics import Metric, platform_metrics
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -52,7 +53,7 @@ MEMORY_SUFFIXES = ['-dram', '-pmem', '-dram-pmem', '-coldstart-toptier', '-topti
 
 class ExperimentResults:
     def __init__(self, name):
-        geometry_options = {"margin": "0.2in"}
+        geometry_options = ['a0paper', "margin=0.2in"]
         self.doc = Document(name, geometry_options=geometry_options,
                             font_size='small')
         self.sections = {}
@@ -118,14 +119,29 @@ class ExperimentResults:
         table.add_hline()
         return table
 
+    @staticmethod
+    def create_nodes_table():
+        row = ['node']
+        for metric in metrics.platform_metrics:
+            #
+            row.append(metric.value.replace('_', ' ').replace('platform', '').replace('bytes per second', ' '))
+        tabular = len(metrics.platform_metrics) + 1
+        table = Tabular('|' + 'c|' * tabular)
+        table.add_hline()
+        table.add_row(row)
+        table.add_hline()
+        return table
+
     def discover_experiment_data(self, experiment_name, experiment_type,
-                                 tasks, task_counts, description):
+                                 tasks, task_counts, nodes, description):
+
         if experiment_name not in self.sections.keys():
             self.sections[experiment_name] = Section(experiment_name)
             self.sections[experiment_name].append(description)
         if experiment_type not in self.experiment_types:
             self.experiment_types.append(experiment_type)
         workloads_results = Subsection('')
+        node_results = Subsection('')
         # create table with results
         table = self.create_table()
         for task in tasks:
@@ -157,8 +173,13 @@ class ExperimentResults:
                     self.metric_values[metric_name][task_count] = \
                         {task_name_with_index: {experiment_type: metric_value}}
 
+        # create table with node metrics
+        node_table = self.create_nodes_table()
+
         workloads_results.append(table)
+        node_results.append(node_table)
         self.sections[experiment_name].append(workloads_results)
+        self.sections[experiment_name].append(node_results)
 
     def _generate_document(self):
         for section in self.sections.values():

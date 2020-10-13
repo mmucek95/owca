@@ -26,6 +26,7 @@ from serializator import AnalyzerQueries
 from view import TxtStagesExporter
 from model import Stat, Task, Node, ExperimentMeta, ExperimentType, WStat, ClusterInfoLoader
 from results import ExperimentResults
+from metrics import Metric, platform_metrics
 
 FORMAT = "%(asctime)-15s:%(levelname)s %(module)s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
@@ -373,16 +374,18 @@ def main():
         nodes: List[str] = analyzer_queries.query_node_list(t_end)
         no: List[Node] = []
         for node_name in nodes:
-            no.append(Node(name=node_name))
-
-        analyzer_queries.query_platform_performance_metrics(t_end, no)
+            new_node = Node(name=node_name)
+            for metric in platform_metrics:
+                socket0, socket1 = analyzer_queries.query_platform_performance_metric(t_end, metric, node_name)
+                new_node.performance_metrics[metric.name] = socket0
+            no.append(new_node)
 
         tasks: Dict[str, Task] = analyzer_queries.query_tasks_list(t_end)
         analyzer_queries.query_task_performance_metrics(
             t_end, tasks, window_length=int(t_end - t_start))
         analyzer_queries.query_task_numa_pages(t_end, tasks)
         latex_file.discover_experiment_data(experiment_name, experiment_type,
-                                            tasks, task_counts, description)
+                                            tasks, task_counts, no, description)
     latex_file.generate_pdf()
 
 
