@@ -72,19 +72,19 @@ class AnalyzerQueries:
             for result in query_results:
                 nodes[result['metric']['nodename']].performance_metrics[metric] = {'instant': result['value'][1]}
 
-    def query_performance_metrics(self, time: int, functions_args: List[Tuple[Function, str]],
+    def query_performance_metrics(self, time: int, functions_args: Dict[Metric, List[Tuple]],
                                   metrics: List[Metric], window_length: int) -> Dict[Metric, Dict]:
         """performance metrics which needs aggregation over time"""
         query_results: Dict[Metric, Dict] = {}
         for metric in metrics:
-            for function, arguments in functions_args:
+            for function in functions_args[metric]:
                 query_template = "{function}({arguments}{prom_metric}[{window_length}s])"
-                query = query_template.format(function=function.value,
-                                              arguments=arguments,
+                query = query_template.format(function=function[0].value,
+                                              arguments=function[1],
                                               window_length=window_length,
                                               prom_metric=MetricsQueries[metric])
                 query_result = self.prometheus_client.instant_query(query, time)
-                aggregation_name = build_function_call_id(function, arguments)
+                aggregation_name = build_function_call_id(function[0], function[1])
 
                 if metric in query_results:
                     query_results[metric][aggregation_name] = query_result
@@ -95,10 +95,16 @@ class AnalyzerQueries:
     def query_task_performance_metrics(self, time: int, tasks: Dict[str, Task],
                                        window_length: int = 120):
 
-        metrics = (Metric.TASK_THROUGHPUT, Metric.TASK_LATENCY)
+        metrics = [Metric.TASK_THROUGHPUT, Metric.TASK_LATENCY,
+                   Metric.TASK_MEM_MBW_LOCAL, Metric.TASK_MEM_MBW_REMOTE]
+        gauge_function_args = [(Function.AVG, ''), (Function.QUANTILE, '0.1,'),
+                               (Function.QUANTILE, '0.9,')]
+        counter_function_args = [(Function.RATE, '')]
 
-        function_args = ((Function.AVG, ''), (Function.QUANTILE, '0.1,'),
-                         (Function.QUANTILE, '0.9,'),)
+        function_args = {Metric.TASK_THROUGHPUT: gauge_function_args,
+                         Metric.TASK_LATENCY: gauge_function_args,
+                         Metric.TASK_MEM_MBW_LOCAL: counter_function_args,
+                         Metric.TASK_MEM_MBW_REMOTE: counter_function_args}
 
         query_results = self.query_performance_metrics(time, function_args, metrics, window_length)
         for metric, query_result in query_results.items():
@@ -113,7 +119,7 @@ class AnalyzerQueries:
 
     def query_task_numa_pages(self, time: int, tasks: Dict[str, Task]):
         query_result = self.prometheus_client.instant_query('{}'.format(
-            'task_mem_numa_pages'), time)
+            Metric.TASK_MEM_NUMA_PAGES.value), time)
         for metric in query_result:
             task_name = metric['metric']['task_name']
             value = metric['value'][1]
