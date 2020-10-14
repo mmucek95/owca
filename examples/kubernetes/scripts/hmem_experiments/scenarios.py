@@ -183,3 +183,30 @@ PMBENCH_SCENARIOS = [
              workloads_count=[{PMBENCH_BIG_COLDSTART_TOPTIER: 4}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER_WITH_COLDSTART)
 ]
+
+BASE_PMBENCH_SCENARIOS = [
+    Scenario(name='pmbench-big-dram',
+             workloads_count=[{PMBENCH_BIG_DRAM: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.DRAM),
+    # Pmem pmbench big
+    Scenario(name='pmbench-big-pmem',
+             workloads_count=[{PMBENCH_BIG_PMEM: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.PMEM),
+    # First touch policy pmbench big
+    Scenario(name='pmbench-big-first-touch-policy',
+             workloads_count=[{PMBENCH_BIG_DRAM_PMEM: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NO_NUMA_BALANCING,
+             reset_workloads_between_steps=False),
+    # Numa balancing pmbench big
+    Scenario(name='pmbench-big-numa-balancing',
+             workloads_count=[{PMBENCH_BIG_DRAM_PMEM: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NUMA_BALANCING),
+    # Toptier limit pmbench big
+    Scenario(name='pmbench-big-toptier-limit',
+             workloads_count=[{PMBENCH_BIG_TOPTIER: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER),
+    # Toptier with coldstart pmbench big
+    Scenario(name='pmbench-toptier-coldstart',
+             workloads_count=[{PMBENCH_BIG_COLDSTART_TOPTIER: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER_WITH_COLDSTART)
+]

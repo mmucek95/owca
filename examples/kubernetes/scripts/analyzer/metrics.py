@@ -101,6 +101,18 @@ platform_metrics = [
     Metric.PLATFORM_RPQ_READ_LATENCY_SECONDS,
 ]
 
+MetricLegends = {
+    Metric.PLATFORM_PMM_READS_BYTES_PER_SECOND: {'quantity': 'GB/s', 'helper': '1e9', },
+    Metric.PLATFORM_PMM_WRITES_BYTES_PER_SECOND: {'quantity': 'GB/s', 'helper': '1e9', },
+    Metric.PLATFORM_PMM_TOTAL_BYTES_PER_SECOND: {'quantity': 'GB/s', 'helper': '1e9', },
+    Metric.PLATFORM_DRAM_READS_BYTES_PER_SECOND: {'quantity': 'GB/s', 'helper': '1e9', },
+    Metric.PLATFORM_DRAM_WRITES_BYTES_PER_SECOND: {'quantity': 'GB/s', 'helper': '1e9', },
+    Metric.PLATFORM_DRAM_TOTAL_BYTES_PER_SECOND: {'quantity': 'GB/s', 'helper': '1e9', },
+    Metric.PLATFORM_DRAM_HIT_RATIO: {'quantity': 'ratio', 'helper': '1', },
+    Metric.PLATFORM_UPI_BANDWIDTH_BYTES_PER_SECOND: {'quantity': 'GB/s', 'helper': '1e9', },
+    Metric.PLATFORM_RPQ_READ_LATENCY_SECONDS: {'quantity': 'seconds', 'helper': '1', },
+}
+
 
 MetricsQueries = {
     Metric.TASK_THROUGHPUT: 'apm_sli2',

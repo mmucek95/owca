@@ -357,8 +357,8 @@ def read_experiment_data(file: str):
 
 
 def main():
-    results_dir = '../hmem_experiments/results'
-    latex_file = ExperimentResults('Experiment-results')
+    results_dir = '../hmem_experiments/pmbench_base_results_1602617367.810661'
+    latex_file = ExperimentResults('Experiment-pmbench_base-results')
 
     analyzer_queries = AnalyzerQueries('http://100.64.176.35:30900')
 
