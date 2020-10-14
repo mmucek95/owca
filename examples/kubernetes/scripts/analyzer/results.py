@@ -20,6 +20,7 @@
 
 from pylatex import Document, Section, Subsection, Tabular, Figure
 from pylatex.utils import bold
+from datetime import datetime
 
 from metrics import Metric
 
@@ -158,10 +159,12 @@ class ExperimentResults:
                     {task_name_with_index: {experiment_type: metric_value}}
 
     def discover_experiment_data(self, experiment_name, experiment_type,
-                                 tasks, task_counts, description):
+                                 tasks, task_counts, description, start_time):
         if experiment_name not in self.sections.keys():
             self.sections[experiment_name] = Section(experiment_name)
             self.sections[experiment_name].append(description)
+            self.sections[experiment_name].append('\nExperiment start time: {}'.format(
+                datetime.fromtimestamp(start_time)))
         if experiment_type not in self.experiment_types:
             self.experiment_types.append(experiment_type)
         workloads_results = Subsection('')
