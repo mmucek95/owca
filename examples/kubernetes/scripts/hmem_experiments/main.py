@@ -14,6 +14,7 @@
 
 import os
 from time import time
+from datetime import datetime
 
 from runner import scale_down_all_workloads
 from workload_runner import run_experiment, experiment_to_json
@@ -33,7 +34,7 @@ def run_scenario(scenario: Scenario, save_dir):
 
 def main():
 
-    date = str(time())
+    date = datetime.today().strftime('%Y-%m-%d-%H:%M')
     # pmbench
     for scenario in PMBENCH_SCENARIOS:
         run_scenario(scenario, 'pmbench_advanced_results_'+date)
@@ -41,9 +42,9 @@ def main():
         run_scenario(scenario, 'pmbench_base_results_'+date)
     # redis
     for scenario in BASE_REDIS_SCENARIOS:
-        run_scenario(scenario, 'base_results'+date)
+        run_scenario(scenario, 'base_results_'+date)
     for scenario in REDIS_SCENARIOS:
-        run_scenario(scenario, 'advanced_results'+date)
+        run_scenario(scenario, 'advanced_results_'+date)
 
 
 if __name__ == '__main__':
