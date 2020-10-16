@@ -103,29 +103,36 @@ class ExperimentResults:
         rounded_metric = round(metric, 3)
         if metric > rounded_metric == 0:
             rounded_metric = '> 0'
+        else:
+            rounded_metric = format(metric, ",.3f")
         return rounded_metric
 
     def get_metrics(self, task):
-        average_latency = self.round_metric(
-            float(task.performance_metrics[Metric.TASK_LATENCY][AVG]) * 1e6) # nanoseconds
-        average_throughput = self.round_metric(
-            float(task.performance_metrics[Metric.TASK_THROUGHPUT][AVG]))
-        q09_latency = self.round_metric(float(task.performance_metrics[Metric.TASK_LATENCY][Q09]) * 1e6) # nanoseconds
-        q09_throughput = self.round_metric(float(
-            task.performance_metrics[Metric.TASK_THROUGHPUT][Q09]))
-        numa_nodes = []
-        for i in range(0, 4):
-            value = float(task.performance_metrics[Metric.TASK_MEM_NUMA_PAGES][str(i)]) * 4096 / 1e9
-            rounded_value = self.round_metric(value)
-            numa_nodes.append(rounded_value)
-        mbw_local = 0
-        mbw_remote = 0
-        # mbw_local = self.round_metric(
-        #     float(task.performance_metrics[Metric.TASK_MEM_MBW_LOCAL][RATE]) / 1e9)
-        # mbw_remote = self.round_metric(
-        #     float(task.performance_metrics[Metric.TASK_MEM_MBW_REMOTE][RATE]) / 1e9)
-        return average_latency, average_throughput, q09_latency, q09_throughput, \
-            numa_nodes, mbw_local, mbw_remote
+        if Metric.TASK_LATENCY in task.performance_metrics:
+            average_latency = self.round_metric(
+                float(task.performance_metrics[Metric.TASK_LATENCY][AVG])) # nanoseconds
+            average_throughput = self.round_metric(
+                float(task.performance_metrics[Metric.TASK_THROUGHPUT][AVG]))
+            q09_latency = self.round_metric(float(task.performance_metrics[Metric.TASK_LATENCY][Q09])) # nanoseconds
+            q09_throughput = self.round_metric(float(
+                task.performance_metrics[Metric.TASK_THROUGHPUT][Q09]))
+            numa_nodes = []
+            for i in range(0, 4):
+                value = float(task.performance_metrics[Metric.TASK_MEM_NUMA_PAGES][str(i)]) * 4096 / 1e9
+                rounded_value = self.round_metric(value)
+                numa_nodes.append(rounded_value)
+            mbw_local = 0
+            mbw_remote = 0
+            if Metric.TASK_MEM_MBW_LOCAL in task.performance_metrics:
+                mbw_local = self.round_metric(
+                    float(task.performance_metrics[Metric.TASK_MEM_MBW_LOCAL][RATE]) / 1e9)
+            if Metric.TASK_MEM_MBW_REMOTE in task.performance_metrics:
+                mbw_remote = self.round_metric(
+                    float(task.performance_metrics[Metric.TASK_MEM_MBW_REMOTE][RATE]) / 1e9)
+            return average_latency, average_throughput, q09_latency, q09_throughput, \
+                numa_nodes, mbw_local, mbw_remote
+        else:
+            return 0, 0, 0, 0, [0,0,0,0], 0, 0
 
     @staticmethod
     def create_table():
@@ -207,7 +214,7 @@ class ExperimentResults:
                 for metric in metrics.platform_metrics:
                     row.append(
                         self.round_metric(
-                            float(node.performance_metrics[metric.name]) / float(metrics.MetricLegends[metric]['helper'])
+                            float(node.performance_metrics[socket][metric.name]) / float(metrics.MetricLegends[metric]['helper'])
                         )
                     )
                 node_table.add_row(row)

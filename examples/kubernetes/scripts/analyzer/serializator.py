@@ -53,16 +53,16 @@ class AnalyzerQueries:
 
         if query_results:
             # return socket 0, socket 1; socket 0 always first;
-            if query_results[0]['metric']['socket'] == 0:
+            if query_results[0]['metric']['socket'] == '0':
                 return query_results[0]['value'][1], query_results[1]['value'][1]
             else:
-                return query_results[1]['value'][1], query_results[1]['value'][0]
+                return query_results[1]['value'][1], query_results[0]['value'][1]
         else:
             return 0, 0
 
     def query_platform_performance_metrics(self, time: int, nodes: Dict[str, Node]):
         # very important parameter - window_length [s]
-
+        pass
         metrics = (Metric.PLATFORM_MEM_USAGE, Metric.PLATFORM_CPU_REQUESTED,
                    Metric.PLATFORM_CPU_UTIL, #Metric.PLATFORM_MBW_TOTAL, Metric.POD_SCHEDULED,
                    Metric.PLATFORM_DRAM_HIT_RATIO, Metric.PLATFORM_WSS_USED)

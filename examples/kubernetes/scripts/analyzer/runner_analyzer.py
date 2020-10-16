@@ -357,8 +357,10 @@ def read_experiment_data(file: str):
 
 
 def main():
-    results_dir = '../hmem_experiments/pmbench_base_results_1602617367.810661'
-    latex_file = ExperimentResults('Experiment-pmbench_base-results')
+    # base advanced
+    name = 'advanced_results_2020-10-15-17'
+    results_dir = '../hmem_experiments/' + name
+    latex_file = ExperimentResults('Experiment-' + name)
 
     analyzer_queries = AnalyzerQueries('http://100.64.176.35:30900')
 
@@ -375,9 +377,11 @@ def main():
         no: List[Node] = []
         for node_name in nodes:
             new_node = Node(name=node_name)
+            new_node.performance_metrics[0] = {}
+            new_node.performance_metrics[1] = {}
             for metric in platform_metrics:
                 socket0, socket1 = analyzer_queries.query_platform_performance_metric(t_end, metric, node_name)
-                new_node.performance_metrics[metric.name] = socket0
+                new_node.performance_metrics[0][metric.name], new_node.performance_metrics[1][metric.name] = socket0, socket1
             no.append(new_node)
 
         tasks: Dict[str, Task] = analyzer_queries.query_tasks_list(t_end)
