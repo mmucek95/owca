@@ -50,4 +50,5 @@ runner: !MeasurementRunner
   wss_membw_threshold: 0.01
   wss_stable_cycles: -5
   rdt_enabled: True
+  sched: True
   gather_hw_mm_topology: True
