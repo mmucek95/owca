@@ -153,6 +153,33 @@ PMBENCH_MEDIUM_WSS_TOPTIER = 'pmbench-medium-wss-toptier'
 # ----------------- PMBENCH SCENARIOS --------------------------
 SLEEP_DURATION = 900
 WORKLOAD_COUNT = 1
+BASE_PMBENCH_SCENARIOS = [
+    Scenario(name='pmbench-big-dram',
+             workloads_count=[{PMBENCH_BIG_DRAM: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.DRAM),
+    # Pmem pmbench big
+    Scenario(name='pmbench-big-pmem',
+             workloads_count=[{PMBENCH_BIG_PMEM: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.PMEM),
+    # First touch policy pmbench big
+    Scenario(name='pmbench-big-first-touch-policy',
+             workloads_count=[{PMBENCH_BIG_DRAM_PMEM: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NO_NUMA_BALANCING,
+             reset_workloads_between_steps=False),
+    # Numa balancing pmbench big
+    Scenario(name='pmbench-big-numa-balancing',
+             workloads_count=[{PMBENCH_BIG_DRAM_PMEM: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NUMA_BALANCING),
+    # Toptier limit pmbench big
+    Scenario(name='pmbench-big-toptier-limit',
+             workloads_count=[{PMBENCH_BIG_TOPTIER: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER),
+    # Toptier with coldstart pmbench big
+    Scenario(name='pmbench-toptier-coldstart',
+             workloads_count=[{PMBENCH_BIG_COLDSTART_TOPTIER: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER_WITH_COLDSTART)
+]
+
 PMBENCH_SCENARIOS = [
     # Dram redis memtier big
     Scenario(name='pmbench-big-dram',
@@ -184,29 +211,88 @@ PMBENCH_SCENARIOS = [
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER_WITH_COLDSTART)
 ]
 
-BASE_PMBENCH_SCENARIOS = [
-    Scenario(name='pmbench-big-dram',
-             workloads_count=[{PMBENCH_BIG_DRAM: 1}],
+# ----------------- MEMCACHCED-MUTILATE WORKLOADS --------------------------
+#     ----------------- BIG ----------------
+MEMCACHED_MUTILATE_BIG_DRAM = 'memcached-mutilate-big-dram'
+MEMCACHED_MUTILATE_BIG_PMEM = 'memcached-mutilate-big-pmem'
+MEMCACHED_MUTILATE_BIG_DRAM_PMEM = 'memcached-mutilate-big-dram-pmem'
+MEMCACHED_MUTILATE_BIG_COLDSTART_TOPTIER = 'memcached-mutilate-big-coldstart-toptier'
+MEMCACHED_MUTILATE_BIG_TOPTIER = 'memcached-mutilate-big-toptier'
+#     --------------- BIG WSS --------------
+MEMCACHED_MUTILATE_BIG_WSS_DRAM = 'memcached-mutilate-big-wss-dram'
+MEMCACHED_MUTILATE_BIG_WSS_PMEM = 'memcached-mutilate-big-wss-pmem'
+MEMCACHED_MUTILATE_BIG_WSS_DRAM_PMEM = 'memcached-mutilate-big-wss-dram-pmem'
+MEMCACHED_MUTILATE_BIG_WSS_COLDSTART_TOPTIER = 'memcached-mutilate-big-wss-coldstart-toptier'
+MEMCACHED_MUTILATE_BIG_WSS_TOPTIER = 'memcached-mutilate-big-wss-toptier'
+#     --------------- MEDIUM ---------------
+MEMCACHED_MUTILATE_MEDIUM_COLDSTART_TOPTIER = 'memcached-mutilate-medium-coldstart-toptier'
+MEMCACHED_MUTILATE_MEDIUM_DRAM = 'memcached-mutilate-medium-dram'
+MEMCACHED_MUTILATE_MEDIUM_DRAM_PMEM = 'memcached-mutilate-medium-dram-pmem'
+MEMCACHED_MUTILATE_MEDIUM_PMEM = 'memcached-mutilate-medium-pmem'
+MEMCACHED_MUTILATE_MEDIUM_TOPTIER = 'memcached-mutilate-medium-toptier'
+#     ------------- MEDIUM WSS -------------
+MEMCACHED_MUTILATE_MEDIUM_WSS_COLDSTART_TOPTIER = 'memcached-mutilate-medium-wss-coldstart-toptier'
+MEMCACHED_MUTILATE_MEDIUM_WSS_DRAM = 'memcached-mutilate-medium-wss-dram'
+MEMCACHED_MUTILATE_MEDIUM_WSS_DRAM_PMEM = 'memcached-mutilate-medium-wss-dram-pmem'
+MEMCACHED_MUTILATE_MEDIUM_WSS_PMEM = 'memcached-mutilate-medium-wss-pmem'
+MEMCACHED_MUTILATE_MEDIUM_WSS_TOPTIER = 'memcached-mutilate-medium-wss-toptier'
+# ----------------- MEMCACHED_MUTILATE SCENARIOS --------------------------
+SLEEP_DURATION = 900
+WORKLOAD_COUNT = 1
+BASE_MEMCACHED_MUTILATE_SCENARIOS = [
+    Scenario(name='memcached-mutilate-big-dram',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_DRAM: 1}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.DRAM),
-    # Pmem pmbench big
-    Scenario(name='pmbench-big-pmem',
-             workloads_count=[{PMBENCH_BIG_PMEM: 1}],
+    # Pmem memcached-mutilate big
+    Scenario(name='memcached-mutilate-big-pmem',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_PMEM: 1}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.PMEM),
-    # First touch policy pmbench big
-    Scenario(name='pmbench-big-first-touch-policy',
-             workloads_count=[{PMBENCH_BIG_DRAM_PMEM: 1}],
+    # First touch policy memcached-mutilate big
+    Scenario(name='memcached-mutilate-big-first-touch-policy',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_DRAM_PMEM: 1}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NO_NUMA_BALANCING,
              reset_workloads_between_steps=False),
-    # Numa balancing pmbench big
-    Scenario(name='pmbench-big-numa-balancing',
-             workloads_count=[{PMBENCH_BIG_DRAM_PMEM: 1}],
+    # Numa balancing memcached-mutilate big
+    Scenario(name='memcached-mutilate-big-numa-balancing',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_DRAM_PMEM: 1}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NUMA_BALANCING),
-    # Toptier limit pmbench big
-    Scenario(name='pmbench-big-toptier-limit',
-             workloads_count=[{PMBENCH_BIG_TOPTIER: 1}],
+    # Toptier limit memcached-mutilate big
+    Scenario(name='memcached-mutilate-big-toptier-limit',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_TOPTIER: 1}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER),
-    # Toptier with coldstart pmbench big
-    Scenario(name='pmbench-toptier-coldstart',
-             workloads_count=[{PMBENCH_BIG_COLDSTART_TOPTIER: 1}],
+    # Toptier with coldstart memcached-mutilate big
+    Scenario(name='memcached-mutilate-toptier-coldstart',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_COLDSTART_TOPTIER: 1}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER_WITH_COLDSTART)
+]
+
+MEMCACHED_MUTILATE_SCENARIOS = [
+    # Dram redis memtier big
+    Scenario(name='memcached-mutilate-big-dram',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_DRAM: 1}, {MEMCACHED_MUTILATE_BIG_DRAM: 2}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.DRAM,
+             reset_workloads_between_steps=False),
+    # Pmem redis memtier big
+    Scenario(name='memcached-mutilate-big-pmem',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_PMEM: 1}, {MEMCACHED_MUTILATE_BIG_PMEM: 2}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.PMEM,
+             reset_workloads_between_steps=False),
+    # First touch policy redis memtier big
+    Scenario(name='memcached-mutilate-big-first-touch-policy',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_DRAM_PMEM: 1}, {MEMCACHED_MUTILATE_BIG_DRAM_PMEM: 2},
+                              {MEMCACHED_MUTILATE_BIG_DRAM_PMEM: 3}, {MEMCACHED_MUTILATE_BIG_DRAM_PMEM: 4}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NO_NUMA_BALANCING,
+             reset_workloads_between_steps=False),
+    # Numa balancing redis memtier big
+    Scenario(name='memcached-mutilate-big-numa-balancing',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_DRAM_PMEM: 4}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NUMA_BALANCING),
+    # Toptier limit redis memtier big
+    Scenario(name='memcached-mutilate-big-toptier-limit',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_TOPTIER: 4}],
+             sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER),
+    # Toptier with coldstart redis memtier big
+    Scenario(name='memcached-mutilate-toptier-coldstart',
+             workloads_count=[{MEMCACHED_MUTILATE_BIG_COLDSTART_TOPTIER: 4}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER_WITH_COLDSTART)
 ]
