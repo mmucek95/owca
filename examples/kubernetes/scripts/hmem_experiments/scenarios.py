@@ -39,6 +39,7 @@ class Scenario:
     # If for some reason you do not want to scale workloads to 0 replicas
     # after each step set this flag to false
     reset_workloads_between_steps: bool = True
+    modify_toptier_limit: Dict = None
 
 
 # ----------------- REDIS WORKLOADS --------------------------
@@ -99,3 +100,4 @@ REDIS_SCENARIOS = [
              workloads_count=[{REDIS_MEMTIER_BIG_COLDSTART_TOPTIER: 4}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER_WITH_COLDSTART)
 ]
+

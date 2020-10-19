@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+import logging
 from dataclasses import dataclass
 from typing import Dict
 
@@ -115,6 +116,8 @@ def _run_workloads(number_of_workloads: Dict,
 
 def run_experiment(scenario: Scenario, number_of_workloads):
     _set_configuration(EXPERIMENT_CONFS[scenario.experiment_type])
+    for worklad_name, toptier_value in scenario.modify_toptier_limit.items():
+        patch_toptier_limit(worklad_name, toptier_value)
     start_timestamp = time()
     annotate('Running experiment: {}'.format(scenario.name))
     _run_workloads(number_of_workloads, scenario.sleep_duration,
@@ -123,3 +126,11 @@ def run_experiment(scenario: Scenario, number_of_workloads):
     return Experiment(scenario.name, number_of_workloads, scenario.experiment_type,
                       EXPERIMENT_DESCRIPTION[scenario.experiment_type],
                       start_timestamp, stop_timestamp)
+
+
+def patch_toptier_limit(workload_name, toptier_value):
+    patch_cmd = """kubectl patch statefulset {workload_name} -p
+    '{"spec": {"template": {"metadata": {"annotations":
+    {"toptierlimit.cri-resource-manager.intel.com/pod": "{toptier_value}}"}}}}}'""".format(
+        workload_name=workload_name, toptier_value=toptier_value)
+    default_shell_run(patch_cmd)
