@@ -48,13 +48,13 @@ NUMA_NODE_3 = 'node3'
 NUMA_PAGES = 'numa_pages'
 
 
-METRIC_METADATA = {AVG_LATENCY: {NAME: 'Average latency', UNIT: 'ms'},
-                   AVG_THROUGHPUT: {NAME: 'Average throughput', UNIT: 'ops'},
-                   Q09_LATENCY: {NAME: 'quantile 0.9 latency', UNIT: 'ms'},
-                   Q09_THROUGHPUT: {NAME: 'quantile 0.9 throughput', UNIT: 'ops'},
-                   NUMA_PAGES: {NAME: 'task numa pages', UNIT: 'GB'},
-                   MBW_LOCAL: {NAME: 'memory mbw local', UNIT: 'GB/s'},
-                   MBW_REMOTE: {NAME: 'memory mbw remote', UNIT: 'GB/s'}}
+RESULTS_METADATA = {AVG_LATENCY: {NAME: 'Average latency', UNIT: 'ms'},
+                    AVG_THROUGHPUT: {NAME: 'Average throughput', UNIT: 'ops'},
+                    Q09_LATENCY: {NAME: 'quantile 0.9 latency', UNIT: 'ms'},
+                    Q09_THROUGHPUT: {NAME: 'quantile 0.9 throughput', UNIT: 'ops'},
+                    NUMA_PAGES: {NAME: 'task numa pages', UNIT: 'GB'},
+                    MBW_LOCAL: {NAME: 'memory mbw local', UNIT: 'GB/s'},
+                    MBW_REMOTE: {NAME: 'memory mbw remote', UNIT: 'GB/s'}}
 
 MEMORY_SUFFIXES = ['-dram', '-pmem', '-dram-pmem', '-coldstart-toptier', '-toptier', '-coldstart']
 
@@ -65,11 +65,11 @@ class ExperimentResults:
         self.doc = Document(name, geometry_options=geometry_options,
                             font_size='small')
         self.sections = {}
-        self.metric_values = {AVG_LATENCY: {}, AVG_THROUGHPUT: {},
-                              Q09_LATENCY: {}, Q09_THROUGHPUT: {},
-                              NUMA_NODE_0: {}, NUMA_NODE_1: {},
-                              NUMA_NODE_2: {}, NUMA_NODE_3: {}, MBW_LOCAL: {},
-                              MBW_REMOTE: {}}
+        self.results_values = {AVG_LATENCY: {}, AVG_THROUGHPUT: {},
+                               Q09_LATENCY: {}, Q09_THROUGHPUT: {},
+                               NUMA_NODE_0: {}, NUMA_NODE_1: {},
+                               NUMA_NODE_2: {}, NUMA_NODE_3: {}, MBW_LOCAL: {},
+                               MBW_REMOTE: {}}
         self.experiment_types = []
 
     @staticmethod
@@ -138,24 +138,24 @@ class ExperimentResults:
         table.add_hline()
         return table
 
-    def _keep_task_metrics(self, task, task_name, task_count, experiment_type,
+    def _keep_task_results(self, task, task_name, task_count, experiment_type,
                            average_latency, average_throughput, q09_latency, q09_throughput):
-        task_metrics = {AVG_LATENCY: average_latency,
+        task_results = {AVG_LATENCY: average_latency,
                         AVG_THROUGHPUT: average_throughput,
                         Q09_LATENCY: q09_latency,
                         Q09_THROUGHPUT: q09_throughput}
         task_index = self._get_task_index(task)
         task_name_with_index = self._strip_memory_suffix(task_name + '-' + task_index)
-        for metric_name, metric_value in task_metrics.items():
-            if task_count in self.metric_values[metric_name]:
-                if task_name_with_index in self.metric_values[metric_name][task_count]:
-                    self.metric_values[metric_name][task_count][task_name_with_index].update(
+        for metric_name, metric_value in task_results.items():
+            if task_count in self.results_values[metric_name]:
+                if task_name_with_index in self.results_values[metric_name][task_count]:
+                    self.results_values[metric_name][task_count][task_name_with_index].update(
                         {experiment_type: metric_value})
                 else:
-                    self.metric_values[metric_name][task_count][task_name_with_index] = \
+                    self.results_values[metric_name][task_count][task_name_with_index] = \
                         {experiment_type: metric_value}
             else:
-                self.metric_values[metric_name][task_count] = \
+                self.results_values[metric_name][task_count] = \
                     {task_name_with_index: {experiment_type: metric_value}}
 
     def discover_experiment_data(self, experiment_name, experiment_type,
@@ -181,7 +181,7 @@ class ExperimentResults:
                  numa_nodes[1], numa_nodes[2], numa_nodes[3], mbw_local, mbw_remote)
             )
             table.add_hline()
-            self._keep_task_metrics(task, task_name, task_count, experiment_type, average_latency,
+            self._keep_task_results(task, task_name, task_count, experiment_type, average_latency,
                                     average_throughput, q09_latency, q09_throughput)
 
         workloads_results.append(table)
@@ -219,8 +219,8 @@ class ExperimentResults:
                 ax.bar(x - width + i * width, data_per_workload[i],
                        width, label=workload_names[i])
 
-            ax.set_ylabel('{} ({})'.format(METRIC_METADATA[metric_name][NAME],
-                                           METRIC_METADATA[metric_name][UNIT]))
+            ax.set_ylabel('{} ({})'.format(RESULTS_METADATA[metric_name][NAME],
+                                           RESULTS_METADATA[metric_name][UNIT]))
             ax.set_xticks(x)
             ax.set_xticklabels(labels)
             plt.legend(labels=workload_names, title='Legend',
@@ -233,14 +233,14 @@ class ExperimentResults:
 
     def create_unit_legend(self):
         rows = '|c|'
-        for _ in METRIC_METADATA:
+        for _ in RESULTS_METADATA:
             rows += 'c|'
         table = Tabular(rows)
         title_row = [bold('Metric')]
         unit_row = [bold('Unit')]
-        for metric in METRIC_METADATA.keys():
-            title_row.append(METRIC_METADATA[metric][NAME])
-            unit_row.append(METRIC_METADATA[metric][UNIT])
+        for metric in RESULTS_METADATA.keys():
+            title_row.append(RESULTS_METADATA[metric][NAME])
+            unit_row.append(RESULTS_METADATA[metric][UNIT])
         table.add_hline()
         table.add_row(tuple(title_row))
         table.add_hline()
@@ -250,6 +250,4 @@ class ExperimentResults:
 
     def generate_pdf(self):
         self._generate_document()
-        # for metric_name, metric_values in self.metric_values.items():
-        #    self.generate_bar_graph(metric_name, metric_values)
         self.doc.generate_pdf(clean_tex=True)
