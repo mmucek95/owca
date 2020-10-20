@@ -130,8 +130,11 @@ def run_experiment(scenario: Scenario, number_of_workloads):
 
 
 def patch_toptier_limit(workload_name, toptier_value):
-    patch_cmd = """kubectl patch statefulset {workload_name} -p
-    '{"spec": {"template": {"metadata": {"annotations":
-    {"toptierlimit.cri-resource-manager.intel.com/pod": "{toptier_value}}"}}}}}'""".format(
-        workload_name=workload_name, toptier_value=toptier_value)
+    patch = {"spec":
+             {"template":
+              {"metadata":
+               {"annotations":
+                {"toptierlimit.cri-resource-manager.intel.com/pod": toptier_value}}}}}
+    json_patch = json.dumps(patch)
+    patch_cmd = 'kubectl patch statefulset {} -p \'{}\''.format(workload_name, json_patch)
     default_shell_run(patch_cmd)
