@@ -5,15 +5,18 @@
 # - HOST_IP - need to explicitly enabled in Pod spec using downward-api
 # - HOSTNAME - default provided by OS
 
+# Example to enable WSS heuristic debugging.
+#loggers:
+#  wca.wss: debug
+
 runner: !MeasurementRunner
-  interval: 5.0
+  interval: 60.0 
   node: !KubernetesNode
     cgroup_driver: cgroupfs
     monitored_namespaces: ["default"]
     kubeapi_host: !Env KUBERNETES_SERVICE_HOST
     kubeapi_port: !Env KUBERNETES_SERVICE_PORT
     node_ip: !Env HOST_IP
-
 
   metrics_storage: !LogStorage
     overwrite: True
@@ -33,5 +36,13 @@ runner: !MeasurementRunner
     - platform_pmm_bandwidth_reads
     - platform_pmm_bandwidth_writes
 
-  wss_reset_interval: 1
+  # WorkingSetSize configuration: reset every 20 minutes, require 5 minutes of stable increase less then 1%)
+  # (assuming 1 minute collection interval).
+  wss_reset_cycles: 20
+  wss_membw_threshold: 0.01
+  wss_stable_cycles: -5
+
+  # Collect metrics from proc/PID/sched to debug numa issues
+  # sched: True
+  
   gather_hw_mm_topology: True

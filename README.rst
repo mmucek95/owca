@@ -22,6 +22,9 @@ Resource usage can be increased by:
 - collocating best effort and high priority tasks to exploit resources that are underutilized by high priority applications,
 - collocating tasks that do not compete for shared resources on the platform.
 
+WCA can be also used solely as **fully-featured monitoring agent** to **characterize workloads** and their resource usage patterns. This information can be used then 
+to find or schedule best workloads that fit nodes equiped with Intel PMEM memory modules. More about characterization and **score algorithm**  `here <docs/score_algorithm.rst>`_.  
+
 .. image:: docs/overview.png
 
 WCA abstracts compute node, workloads, monitoring and resource allocation.
@@ -84,7 +87,7 @@ Steps to run WCA:
     sudo mkdir -p /sys/fs/cgroup/{cpu,cpuset,cpuacct,memory,perf_event}/task1
 
     # Add a process to the cgroup to monitor it using WCA. Might be skipped.
-    sudo bash -c 'echo $PROCESS_PID > /sys/fs/cgroup/{cpu,cpuset,cpuacct,memory,perf_event}/task1/tasks'
+    sudo zsh -c "echo $$ > /sys/fs/cgroup/{cpu,cpuset,cpuacct,memory,perf_event}/task1/tasks"
 
     # Example of running agent in measurements-only mode with predefined static list of tasks
     sudo dist/wca.pex --config $PWD/configs/extra/static_measurements.yaml --root
@@ -258,6 +261,7 @@ Further reading
 - `Measurement API <docs/measurement.rst>`_
 - `Detection API <docs/detection.rst>`_
 - `Allocation API <docs/allocation.rst>`_
+- `Score algorithm <docs/score_algorithm.rst>`_
 - `Metrics list <docs/metrics.rst>`_
 - `Metrics sources <docs/metrics_sources.rst>`_
 - `Development guide <docs/development.rst>`_

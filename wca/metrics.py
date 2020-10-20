@@ -73,6 +73,10 @@ class MetricName(str, Enum):
 
     # /proc/PID/based
     TASK_WSS_REFERENCED_BYTES = 'task_wss_referenced_bytes'
+    TASK_WORKING_SET_SIZE_BYTES = 'task_working_set_size_bytes'
+    TASK_WSS_MEASURE_OVERHEAD_SECONDS = 'task_wss_measure_overhead_seconds'
+    TASK_SCHED_STAT = 'task_sched_stat'
+    TASK_SCHED_STAT_NUMA_FAULTS = 'task_sched_stat_numa_faults'
 
     # From Kubernetes/Mesos or other orchestrator system.
     # From Kubernetes (requested) or Mesos (resources)
@@ -114,6 +118,8 @@ class MetricName(str, Enum):
     PLATFORM_VMSTAT_NUMA_HINT_FAULTS = 'platform_vmstat_numa_hint_faults'
     PLATFORM_VMSTAT_NUMA_HINT_FAULTS_LOCAL = 'platform_vmstat_numa_hint_faults_local'
     PLATFORM_VMSTAT_PGFAULTS = 'platform_vmstat_pgfaults'
+    PLATFORM_VMSTAT = 'platform_vmstat'
+    PLATFORM_NODE_VMSTAT = 'platform_node_vmstat'
 
     # Perf event based from uncore PMU and derived
     PLATFORM_PMM_BANDWIDTH_READS = 'platform_pmm_bandwidth_reads'
@@ -609,19 +615,67 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
     MetricName.TASK_WSS_REFERENCED_BYTES:
         MetricMetadata(
             'Task referenced bytes during last measurements cycle based on /proc/smaps '
-            'Referenced field, with /proc/PIDs/clear_refs set to 1 accordinn wss_reset_interval.'
+            'Referenced field, with /proc/PIDs/clear_refs set to after task gets stable.'
             'Warning: this is intrusive collection, '
             'because can influence kernel page reclaim policy and add latency.'
             'Refer to https://github.com/brendangregg/wss#wsspl-referenced-page-flag for more '
             'details.',
             MetricType.GAUGE,
             MetricUnit.BYTES,
-            '/procs/PIDS/smaps',
+            '/proc/PIDS/smaps',
             MetricGranularity.TASK,
             [],
-            'yes',
+            'no (wss_reset_cycles)',
         ),
-
+    MetricName.TASK_WORKING_SET_SIZE_BYTES:
+        MetricMetadata(
+            'Task referenced bytes during last stable measurements cycle based on /proc/smaps '
+            'Referenced field, with /proc/PIDs/clear_refs set to after task gets stable.'
+            'Warning: this is intrusive collection, '
+            'because can influence kernel page reclaim policy and add latency.'
+            'Refer to https://github.com/brendangregg/wss#wsspl-referenced-page-flag for more '
+            'details.',
+            MetricType.GAUGE,
+            MetricUnit.BYTES,
+            '/proc/PIDS/smaps',
+            MetricGranularity.TASK,
+            [],
+            'no (wss_reset_cycles)',
+        ),
+    MetricName.TASK_WSS_MEASURE_OVERHEAD_SECONDS:
+        MetricMetadata(
+            'Seconds that WCA agent spent (kernel time) waiting for /proc/smaps'
+            'or reseting accessed_bits ',
+            MetricType.COUNTER,
+            MetricUnit.SECONDS,
+            '/proc/PIDS/smaps /proc/PIDS/clear_refs',
+            MetricGranularity.TASK,
+            [],
+            'no (wss_reset_cycles)',
+        ),
+    MetricName.TASK_SCHED_STAT:
+        MetricMetadata(
+            'Aggregated statistics for all pids in task (sum from all pids) from /proc/PID/sched.'
+            ' Each field is represented by its own "key" label',
+            MetricType.COUNTER,
+            None,
+            '/proc/PIDS/sched',
+            MetricGranularity.TASK,
+            ['key'],
+            'no (sched)',
+        ),
+    MetricName.TASK_SCHED_STAT_NUMA_FAULTS:
+        MetricMetadata(
+            'Aggregated statistics for all pids in task from /proc/PID/sched only but'
+            ' only numa_faults line (sum is used as default aggregation function).'
+            ' Different numa_fault fields are represented by "fault_type" and "numa_node" labels',
+            MetricType.COUNTER,
+            None,
+            '/proc/PIDS/sched',
+            MetricGranularity.TASK,
+            ['numa_node', 'fault_type'],
+            'no (sched)',
+        ),
     # Generic or from orchestration
     MetricName.TASK_REQUESTED_CPUS:
         MetricMetadata(
@@ -850,6 +904,27 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricGranularity.PLATFORM,
             [],
             'yes'
+        ),
+    MetricName.PLATFORM_VMSTAT:
+        MetricMetadata(
+            'Virtual Memory stats based on /proc/vmstat - all possible keys or matching regexp',
+            MetricType.COUNTER,
+            MetricUnit.NUMERIC,
+            MetricSource.PROCFS,
+            MetricGranularity.PLATFORM,
+            ['key'],
+            'yes (vmstat)'
+        ),
+    MetricName.PLATFORM_NODE_VMSTAT:
+        MetricMetadata(
+            'Virtual Memory stats based on /sys/devices/system/node/nodeX/vmstat'
+            ' all keys or matching regexp',
+            MetricType.COUNTER,
+            MetricUnit.NUMERIC,
+            MetricSource.PROCFS,
+            MetricGranularity.PLATFORM,
+            ['numa_node', 'key'],
+            'yes (vmstat)'
         ),
     # Perf uncore
     MetricName.PLATFORM_PMM_BANDWIDTH_READS:
@@ -1276,6 +1351,9 @@ def _list_leveled_metrics(aggregated_metric, new_metric, max_depth, depth=0):
             else:
                 aggregated_metric[key] = [value]
         else:
+            # With some specific number of levels we need first to create an empty dict.
+            if key not in aggregated_metric:
+                aggregated_metric[key] = {}
             _list_leveled_metrics(aggregated_metric[key], value, max_depth, depth + 1)
 
 
