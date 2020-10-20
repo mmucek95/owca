@@ -110,10 +110,10 @@ class ExperimentResults:
     def get_metrics(self, task):
         if Metric.TASK_LATENCY in task.performance_metrics:
             average_latency = self.round_metric(
-                float(task.performance_metrics[Metric.TASK_LATENCY][AVG])) # nanoseconds
+                float(task.performance_metrics[Metric.TASK_LATENCY][AVG]) * 1e6) # nanoseconds
             average_throughput = self.round_metric(
                 float(task.performance_metrics[Metric.TASK_THROUGHPUT][AVG]))
-            q09_latency = self.round_metric(float(task.performance_metrics[Metric.TASK_LATENCY][Q09])) # nanoseconds
+            q09_latency = self.round_metric(float(task.performance_metrics[Metric.TASK_LATENCY][Q09]) * 1e6) # nanoseconds
             q09_throughput = self.round_metric(float(
                 task.performance_metrics[Metric.TASK_THROUGHPUT][Q09]))
             numa_nodes = []
