@@ -132,6 +132,16 @@ and store them in metrics_storage component.
 
     If string is provided it will be used as regexp to match key.
 
+- ``sched``: **Union[Str, bool]** = *False*
+
+    Responsible for collecting data from /proc/PID/sched metric:
+    - task_sched_stat (lines with ':'),
+    - task_sched_stat_numa_faults (numa_faults field).
+    By default sched is enabled and all metrics (lines from /proc/PID/sched containg ':')
+    will be collected.  False means disable the collection.
+
+    If string is provided it will be used as regexp to match key (string before ':')
+
 
 
 AllocationRunner
@@ -163,7 +173,7 @@ in anomalies_storage and all other measurements in metrics_storage.
 
 - ``rdt_mb_control_required``: **bool** = *False*
 
-    Indicates that MB control is required,
+    Indicates that MB control is required,
     if the platform does not support this feature the WCA will exit.
 
 - ``rdt_cache_control_required``: **bool** = *False*
