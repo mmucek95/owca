@@ -21,6 +21,7 @@ from typing import List
 
 from pylatex import Document, Section, Subsection, Tabular, Figure, VerticalSpace, LineBreak
 from pylatex.utils import bold
+from datetime import datetime
 
 import metrics
 from metrics import Metric, platform_metrics
@@ -183,10 +184,12 @@ class ExperimentResults:
         return table
 
     def discover_experiment_data(self, experiment_name, experiment_type,
-                                 tasks, task_counts, nodes: List[Node], description):
+                                 tasks, task_counts, nodes: List[Node], description, start_time):
         if experiment_name not in self.sections.keys():
             self.sections[experiment_name] = Section(experiment_name)
             self.sections[experiment_name].append(description)
+            self.sections[experiment_name].append('\nExperiment start time: {}'.format(
+                datetime.fromtimestamp(start_time)))
         if experiment_type not in self.experiment_types:
             self.experiment_types.append(experiment_type)
         workloads_results = Subsection('')

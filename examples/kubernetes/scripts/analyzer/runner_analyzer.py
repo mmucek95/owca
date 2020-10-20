@@ -396,7 +396,7 @@ def main():
                 t_end, tasks)
             analyzer_queries.query_task_numa_pages(t_end, tasks)
             latex_file.discover_experiment_data(experiment_name, experiment_type,
-                                                tasks, task_counts, no, description)
+                                                tasks, task_counts, no, description, t_start)
         latex_file.generate_pdf()
 
 
