@@ -118,6 +118,7 @@ def _run_workloads(number_of_workloads: Dict,
 def run_experiment(scenario: Scenario, number_of_workloads):
     _set_configuration(EXPERIMENT_CONFS[scenario.experiment_type])
     for worklad_name, toptier_value in scenario.modify_toptier_limit.items():
+        # TODO: remember the old value and change it back at the end of experiment
         patch_toptier_limit(worklad_name, toptier_value)
     start_timestamp = time()
     annotate('Running experiment: {}'.format(scenario.name))
