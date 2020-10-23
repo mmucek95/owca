@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import json
-import logging
 import subprocess
 
 from dataclasses import dataclass
@@ -117,7 +116,6 @@ def _run_workloads(number_of_workloads: Dict,
             _scale_workload(workload_name, 0)
 
 
-
 def run_experiment(scenario: Scenario, number_of_workloads):
     base_toptier_limits = {}
     _set_configuration(EXPERIMENT_CONFS[scenario.experiment_type])
@@ -136,11 +134,13 @@ def run_experiment(scenario: Scenario, number_of_workloads):
                       EXPERIMENT_DESCRIPTION[scenario.experiment_type],
                       start_timestamp, stop_timestamp)
 
+
 TOPTIER_ANNOTATION_KEY = 'toptierlimit.cri-resource-manager.intel.com/pod'
 SPEC = 'spec'
 TEMPLATE = 'template'
 METADATA = 'metadata'
 ANNOTATIONS = 'annotations'
+
 
 def get_toptier_limit(workload_name):
     get_sts_cmd = 'kubectl get sts {} -o json'.format(workload_name)
