@@ -14,6 +14,8 @@
 
 import json
 import logging
+import subprocess
+
 from dataclasses import dataclass
 from typing import Dict
 
@@ -115,27 +117,45 @@ def _run_workloads(number_of_workloads: Dict,
             _scale_workload(workload_name, 0)
 
 
+
 def run_experiment(scenario: Scenario, number_of_workloads):
+    base_toptier_limits = {}
     _set_configuration(EXPERIMENT_CONFS[scenario.experiment_type])
     for worklad_name, toptier_value in scenario.modify_toptier_limit.items():
-        # TODO: remember the old value and change it back at the end of experiment
+        base_toptier_limits.update({worklad_name: get_toptier_limit(worklad_name)})
         patch_toptier_limit(worklad_name, toptier_value)
     start_timestamp = time()
     annotate('Running experiment: {}'.format(scenario.name))
     _run_workloads(number_of_workloads, scenario.sleep_duration,
                    scenario.reset_workloads_between_steps)
     stop_timestamp = time()
+    # restore old toptier value
+    for worklad_name, toptier_value in base_toptier_limits.items():
+        patch_toptier_limit(worklad_name, toptier_value)
     return Experiment(scenario.name, number_of_workloads, scenario.experiment_type,
                       EXPERIMENT_DESCRIPTION[scenario.experiment_type],
                       start_timestamp, stop_timestamp)
 
+TOPTIER_ANNOTATION_KEY = 'toptierlimit.cri-resource-manager.intel.com/pod'
+SPEC = 'spec'
+TEMPLATE = 'template'
+METADATA = 'metadata'
+ANNOTATIONS = 'annotations'
+
+def get_toptier_limit(workload_name):
+    get_sts_cmd = 'kubectl get sts {} -o json'.format(workload_name)
+    statefulset_spec = subprocess.run([get_sts_cmd], stdout=subprocess.PIPE, shell=True)
+    json_output = json.loads(statefulset_spec.stdout.decode('utf-8'))
+    toptier_limit = json_output[SPEC][TEMPLATE][METADATA][ANNOTATIONS][TOPTIER_ANNOTATION_KEY]
+    return toptier_limit
+
 
 def patch_toptier_limit(workload_name, toptier_value):
-    patch = {"spec":
-             {"template":
-              {"metadata":
-               {"annotations":
-                {"toptierlimit.cri-resource-manager.intel.com/pod": toptier_value}}}}}
+    patch = {SPEC:
+             {TEMPLATE:
+              {METADATA:
+               {ANNOTATIONS:
+                {TOPTIER_ANNOTATION_KEY: toptier_value}}}}}
     json_patch = json.dumps(patch)
     patch_cmd = 'kubectl patch statefulset {} -p \'{}\''.format(workload_name, json_patch)
     default_shell_run(patch_cmd)
