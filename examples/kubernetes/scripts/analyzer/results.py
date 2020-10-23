@@ -26,6 +26,7 @@ from metrics import Metric
 
 import matplotlib.pyplot as plt
 import numpy as np
+import logging
 
 AVG = 'avg'
 Q09 = 'q0.9,'
@@ -71,6 +72,7 @@ class ExperimentResults:
                                NUMA_NODE_2: {}, NUMA_NODE_3: {}, MBW_LOCAL: {},
                                MBW_REMOTE: {}}
         self.experiment_types = []
+        self.name = name
 
     @staticmethod
     def _get_task_index(task_name):
@@ -251,3 +253,4 @@ class ExperimentResults:
     def generate_pdf(self):
         self._generate_document()
         self.doc.generate_pdf(clean_tex=True)
+        logging.info('Created file: {}'.format(self.name))
