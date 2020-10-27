@@ -122,7 +122,7 @@ class Workload:
 @dataclass
 class Node:
     name: str
-    # socket_performance_metrics [socket][metric_name]
+    # per socket performance_metrics [socket][metric_name]
     performance_metrics: Dict[int, Dict[str, float]] = field(default_factory=lambda: {})
 
     def to_dict(self, nodes_capacities: Dict[str, Dict]) -> Dict:

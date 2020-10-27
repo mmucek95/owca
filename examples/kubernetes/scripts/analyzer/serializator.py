@@ -15,7 +15,7 @@
 from typing import Dict, List, Tuple
 from connection import PrometheusClient
 from model import Task, Node
-from metrics import Metric, MetricsQueries, Function, FunctionsDescription
+from metrics import Metric, MetricsQueries, Function, FunctionsDescription, platform_metrics
 
 
 def build_function_call_id(function: Function, arg: str):
@@ -28,13 +28,29 @@ class AnalyzerQueries:
     def __init__(self, prometheus_url):
         self.prometheus_client = PrometheusClient(prometheus_url)
 
-    def query_node_list(self, time) -> List[Node]:
+    def query_node_name_list(self, time) -> List[str]:
         query_result = self.prometheus_client.instant_query(MetricsQueries[Metric.WCA_UP], time)
         nodes = []
         for metric in query_result:
             node = metric['metric']['host']
             nodes.append(node)
 
+        return nodes
+
+    def query_node_list(self, time) -> List[Node]:
+        node_names: List[str] = self.query_node_name_list(time)
+        nodes: List[Node] = []
+        for node_name in node_names:
+            new_node = Node(name=node_name)
+            new_node.performance_metrics[0] = {}
+            new_node.performance_metrics[1] = {}
+            for metric in platform_metrics:
+                socket0, socket1 = \
+                    self.query_platform_performance_metric(
+                        time, metric, node_name)
+                new_node.performance_metrics[0][metric.name], \
+                    new_node.performance_metrics[1][metric.name] = socket0, socket1
+            nodes.append(new_node)
         return nodes
 
     def query_tasks_list(self, time) -> Dict[str, Task]:
@@ -48,7 +64,8 @@ class AnalyzerQueries:
         return tasks
 
     def query_platform_performance_metric(self, time: int, metric: Metric, node: str = ""):
-        parametrize_query = MetricsQueries[metric].replace('{}', '{{nodename="{node}"}}'.format(node=node))
+        parametrize_query = \
+            MetricsQueries[metric].replace('{}', '{{nodename="{node}"}}'.format(node=node))
         query_results = self.prometheus_client.instant_query(parametrize_query, time)
 
         if query_results:
@@ -62,15 +79,16 @@ class AnalyzerQueries:
 
     def query_platform_performance_metrics(self, time: int, nodes: Dict[str, Node]):
         # very important parameter - window_length [s]
-        pass
+        # Stopped working: Metric.PLATFORM_MBW_TOTAL, Metric.POD_SCHEDULED,
         metrics = (Metric.PLATFORM_MEM_USAGE, Metric.PLATFORM_CPU_REQUESTED,
-                   Metric.PLATFORM_CPU_UTIL, #Metric.PLATFORM_MBW_TOTAL, Metric.POD_SCHEDULED,
-                   Metric.PLATFORM_DRAM_HIT_RATIO, Metric.PLATFORM_WSS_USED)
+                   Metric.PLATFORM_CPU_UTIL, Metric.PLATFORM_DRAM_HIT_RATIO,
+                   Metric.PLATFORM_WSS_USED)
 
         for metric in metrics:
             query_results = self.prometheus_client.instant_query(MetricsQueries[metric], time)
             for result in query_results:
-                nodes[result['metric']['nodename']].performance_metrics[metric] = {'instant': result['value'][1]}
+                nodes[result['metric']['nodename']].performance_metrics[metric] = \
+                    {'instant': result['value'][1]}
 
     def query_performance_metrics(self, time: int, functions_args: Dict[Metric, List[Tuple]],
                                   metrics: List[Metric], window_length: int) -> Dict[Metric, Dict]:

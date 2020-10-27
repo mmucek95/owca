@@ -357,19 +357,18 @@ def read_experiment_data(file: str):
 
 
 def main():
-    # base advanced pmbench redis memcached_base_results_2020-10-16-16-09
-    experiment_name = ['pmbench_base_results_', 'pmbench_advanced_results_', ]
-                       # 'redis_base_results_', 'redis_advanced_results_',
-                       # 'memcached_base_results_', 'memcached_advanced_results_']
-    date = '2020-10-19-18-10'
-    #name = 'pmbench_advanced_results_2020-10-19-18-10'
+    experiment_name = ['pmbench_base_results_', 'pmbench_advanced_results_',
+                       'redis_base_results_', 'redis_advanced_results_',
+                       'memcached_base_results_', 'memcached_advanced_results_']
+    # example date
+    date = '2020-10-21-16-55'
 
     for exp in experiment_name:
         name = exp + date
         results_dir = '../hmem_experiments/' + name
         latex_file = ExperimentResults('Experiment-' + name)
 
-        analyzer_queries = AnalyzerQueries('http://100.64.176.35:30900')
+        analyzer_queries = AnalyzerQueries('http://100.64.176.36:30900')
 
         for file in os.listdir(results_dir):
             experiment_data = read_experiment_data(os.path.join(results_dir, file))
@@ -379,24 +378,13 @@ def main():
             experiment_name = experiment_data["meta"]["name"]
             experiment_type = experiment_data['meta']['params']['type']
             task_counts = experiment_data['meta']['params']['workloads_count']
-
-            nodes: List[str] = analyzer_queries.query_node_list(t_end)
-            no: List[Node] = []
-            for node_name in nodes:
-                new_node = Node(name=node_name)
-                new_node.performance_metrics[0] = {}
-                new_node.performance_metrics[1] = {}
-                for metric in platform_metrics:
-                    socket0, socket1 = analyzer_queries.query_platform_performance_metric(t_end, metric, node_name)
-                    new_node.performance_metrics[0][metric.name], new_node.performance_metrics[1][metric.name] = socket0, socket1
-                no.append(new_node)
-
+            nodes: List[Node] = analyzer_queries.query_node_list(t_end)
             tasks: Dict[str, Task] = analyzer_queries.query_tasks_list(t_end)
             analyzer_queries.query_task_performance_metrics(
                 t_end, tasks)
             analyzer_queries.query_task_numa_pages(t_end, tasks)
             latex_file.discover_experiment_data(experiment_name, experiment_type,
-                                                tasks, task_counts, no, description, t_start)
+                                                tasks, task_counts, nodes, description, t_start)
         latex_file.generate_pdf()
 
 
