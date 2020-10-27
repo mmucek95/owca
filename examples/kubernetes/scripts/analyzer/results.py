@@ -18,14 +18,11 @@
 # texlive-latex-extra
 # https://jeltef.github.io/PyLaTeX/current/examples/multirow.html
 
-from typing import List
-from pylatex import Document, Section, Subsection, Tabular, Figure, VerticalSpace, LineBreak
+from pylatex import Document, Section, Subsection, Tabular, Figure
 from pylatex.utils import bold
 from datetime import datetime
 
-import metrics
-from metrics import Metric, platform_metrics
-from model import Node
+from metrics import Metric
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -64,7 +61,7 @@ MEMORY_SUFFIXES = ['-dram', '-pmem', '-dram-pmem', '-coldstart-toptier', '-topti
 
 class ExperimentResults:
     def __init__(self, name):
-        geometry_options = ['a4paper', "margin=0.2in",  "landscape= True"]
+        geometry_options = {"margin": "0.2in", "landscape": True}
         self.doc = Document(name, geometry_options=geometry_options,
                             font_size='small')
         self.sections = {}
@@ -103,35 +100,25 @@ class ExperimentResults:
         rounded_metric = round(metric, 3)
         if metric > rounded_metric == 0:
             rounded_metric = '> 0'
-        else:
-            rounded_metric = format(metric, ",.3f")
         return rounded_metric
 
     def get_metrics(self, task):
-        average_latency = float(task.performance_metrics[Metric.TASK_LATENCY][AVG])
-        q09_latency = float(task.performance_metrics[Metric.TASK_LATENCY][Q09])
-        if 'pmbench' in task.workload_name:
-            average_latency *= 1e6
-            q09_latency *= 1e6
-
-        average_latency = self.round_metric(average_latency)
+        average_latency = self.round_metric(
+            float(task.performance_metrics[Metric.TASK_LATENCY][AVG]))
         average_throughput = self.round_metric(
             float(task.performance_metrics[Metric.TASK_THROUGHPUT][AVG]))
-        q09_latency = self.round_metric(q09_latency)
-        q09_throughput = self.round_metric(
-            float(task.performance_metrics[Metric.TASK_THROUGHPUT][Q09]))
+        q09_latency = self.round_metric(float(task.performance_metrics[Metric.TASK_LATENCY][Q09]))
+        q09_throughput = self.round_metric(float(
+            task.performance_metrics[Metric.TASK_THROUGHPUT][Q09]))
         numa_nodes = []
         for i in range(0, 4):
-            value = float(task.performance_metrics[Metric.TASK_MEM_NUMA_PAGES][str(i)])\
-                    * 4096 / 1e9
+            value = float(task.performance_metrics[Metric.TASK_MEM_NUMA_PAGES][str(i)]) * 4096 / 1e9
             rounded_value = self.round_metric(value)
             numa_nodes.append(rounded_value)
-
         mbw_local = self.round_metric(
             float(task.performance_metrics[Metric.TASK_MEM_MBW_LOCAL][RATE]) / 1e9)
         mbw_remote = self.round_metric(
             float(task.performance_metrics[Metric.TASK_MEM_MBW_REMOTE][RATE]) / 1e9)
-
         return average_latency, average_throughput, q09_latency, q09_throughput, \
             numa_nodes, mbw_local, mbw_remote
 
@@ -151,40 +138,28 @@ class ExperimentResults:
         table.add_hline()
         return table
 
-    def _keep_task_metrics(self, task, task_name, task_count, experiment_type,
+    def _keep_task_results(self, task, task_name, task_count, experiment_type,
                            average_latency, average_throughput, q09_latency, q09_throughput):
-        task_metrics = {AVG_LATENCY: average_latency,
+        task_results = {AVG_LATENCY: average_latency,
                         AVG_THROUGHPUT: average_throughput,
                         Q09_LATENCY: q09_latency,
                         Q09_THROUGHPUT: q09_throughput}
         task_index = self._get_task_index(task)
         task_name_with_index = self._strip_memory_suffix(task_name + '-' + task_index)
-        for metric_name, metric_value in task_metrics.items():
-            if task_count in self.metric_values[metric_name]:
-                if task_name_with_index in self.metric_values[metric_name][task_count]:
-                    self.metric_values[metric_name][task_count][task_name_with_index].update(
+        for metric_name, metric_value in task_results.items():
+            if task_count in self.results_values[metric_name]:
+                if task_name_with_index in self.results_values[metric_name][task_count]:
+                    self.results_values[metric_name][task_count][task_name_with_index].update(
                         {experiment_type: metric_value})
                 else:
-                    self.metric_values[metric_name][task_count][task_name_with_index] = \
+                    self.results_values[metric_name][task_count][task_name_with_index] = \
                         {experiment_type: metric_value}
             else:
-                self.metric_values[metric_name][task_count] = \
+                self.results_values[metric_name][task_count] = \
                     {task_name_with_index: {experiment_type: metric_value}}
-    @staticmethod
-    def create_nodes_table():
-        row = ['node', 'socket']
-        for metric in metrics.platform_metrics:
-            #
-            row.append(metric.value.replace('_', ' ').replace('platform', '').replace('bytes per second', ' '))
-        tabular = len(metrics.platform_metrics) + 2
-        table = Tabular('|' + 'c|' * tabular)
-        table.add_hline()
-        table.add_row(row)
-        table.add_hline()
-        return table
 
     def discover_experiment_data(self, experiment_name, experiment_type,
-                                 tasks, task_counts, nodes: List[Node], description, start_time):
+                                 tasks, task_counts, description, start_time):
         if experiment_name not in self.sections.keys():
             self.sections[experiment_name] = Section(experiment_name)
             self.sections[experiment_name].append(description)
@@ -206,33 +181,15 @@ class ExperimentResults:
                  numa_nodes[1], numa_nodes[2], numa_nodes[3], mbw_local, mbw_remote)
             )
             table.add_hline()
-            self._keep_task_metrics(task, task_name, task_count, experiment_type, average_latency,
+            self._keep_task_results(task, task_name, task_count, experiment_type, average_latency,
                                     average_throughput, q09_latency, q09_throughput)
-
-        # create table with node metrics
-        node_table = self.create_nodes_table()
-        for node in nodes:
-            for socket in [0, 1]:
-                row = [node.name, socket]
-                for metric in metrics.platform_metrics:
-                    row.append(
-                        self.round_metric(
-                            float(node.performance_metrics[socket][metric.name]) / float(metrics.MetricLegends[metric]['helper'])
-                        )
-                    )
-                node_table.add_row(row)
-                node_table.add_hline()
 
         workloads_results.append(table)
         self.sections[experiment_name].append(workloads_results)
 
     def _generate_document(self):
         legend = self.create_unit_legend()
-        node_legend = self.create_platform_unit_legend()
         self.doc.append(legend)
-        self.doc.append(VerticalSpace("10pt"))
-        self.doc.append(LineBreak())
-        self.doc.append(node_legend)
         for section in self.sections.values():
             self.doc.append(section)
 
@@ -284,24 +241,6 @@ class ExperimentResults:
         for metric in RESULTS_METADATA.keys():
             title_row.append(RESULTS_METADATA[metric][NAME])
             unit_row.append(RESULTS_METADATA[metric][UNIT])
-        table.add_hline()
-        table.add_row(tuple(title_row))
-        table.add_hline()
-        table.add_row(tuple(unit_row))
-        table.add_hline()
-        return table
-
-    @staticmethod
-    def create_platform_unit_legend():
-        rows = '|c|'
-        for _ in metrics.MetricLegends:
-            rows += 'c|'
-        table = Tabular(rows)
-        title_row = [bold('Metric')]
-        unit_row = [bold('Unit')]
-        for metric in metrics.MetricLegends:
-            title_row.append(metrics.MetricLegends[metric]['name'])
-            unit_row.append(metrics.MetricLegends[metric]['unit'])
         table.add_hline()
         table.add_row(tuple(title_row))
         table.add_hline()
