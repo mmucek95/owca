@@ -26,7 +26,6 @@ from serializator import AnalyzerQueries
 from view import TxtStagesExporter
 from model import Stat, Task, Node, ExperimentMeta, ExperimentType, WStat, ClusterInfoLoader
 from results import ExperimentResults
-from metrics import Metric, platform_metrics
 
 FORMAT = "%(asctime)-15s:%(levelname)s %(module)s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
