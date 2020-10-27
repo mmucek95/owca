@@ -17,7 +17,7 @@ import subprocess
 NUMA_BALANCING_FILE = '/proc/sys/kernel/numa_balancing'
 TOPTIER_BALANCING_FILE = '/proc/sys/vm/toptier_scale_factor'
 
-NUMA_BALANCING_HOT_THRESHOLD = 'echo 1000 > /proc/sys/kernel/numa_balancing_hot_threshold_ms'
+NUMA_BALANCING_HOT_THRESHOLD = '/proc/sys/kernel/numa_balancing_hot_threshold_ms'
 NUMA_BALANCING_RATE_LIMIT = '/proc/sys/kernel/numa_balancing_rate_limit_mbps'
 NUMA_BALANCING_SCAN_DELAY = '/proc/sys/kernel/numa_balancing_scan_delay_ms'
 NUMA_BALANCING_SCAN_PERIOD_MAX = '/proc/sys/kernel/numa_balancing_scan_period_max_ms'
