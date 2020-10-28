@@ -31,15 +31,15 @@ MIGRATION_PATH_NODE_1 = '/sys/devices/system/node/node1/migration_path'
 DEMOTION_RATELIMIT = '/proc/sys/vm/demotion_ratelimit_mbytes_per_sec'
 PROMOTION_RATELIMIT = '/proc/sys/vm/promotion_ratelimit_mbytes_per_sec'
 
-PARAMETER_VALUES = {NUMA_BALANCING_HOT_THRESHOLD: 1000,
-                    NUMA_BALANCING_RATE_LIMIT: 0,
-                    NUMA_BALANCING_SCAN_DELAY: 1000,
-                    NUMA_BALANCING_SCAN_PERIOD_MAX: 60000,
-                    NUMA_BALANCING_SCAN_PERIOD_MIN: 1000,
-                    NUMA_BALANCING_SCAN_SIZE: 256,
-                    TRACING_ON: 0,
-                    MIGRATION_PATH_NODE_0: 2,
-                    MIGRATION_PATH_NODE_1: 3}
+PARAMETER_VALUES = {NUMA_BALANCING_HOT_THRESHOLD: '1000',
+                    NUMA_BALANCING_RATE_LIMIT: '0',
+                    NUMA_BALANCING_SCAN_DELAY: '1000',
+                    NUMA_BALANCING_SCAN_PERIOD_MAX: '60000',
+                    NUMA_BALANCING_SCAN_PERIOD_MIN: '1000',
+                    NUMA_BALANCING_SCAN_SIZE: '256',
+                    TRACING_ON: '0',
+                    MIGRATION_PATH_NODE_0: '2',
+                    MIGRATION_PATH_NODE_1: '3'}
 
 
 def check_if_pmem_nodes_are_present():
