@@ -73,6 +73,7 @@ Recommended parameters for key generations are:
     openssl ecparam -out key.pem -name prime256v1 -genkey
 
     # Generate a CSR. Change IP address to wca-scheduler node address!
+    # This command requires openssl version 1.1.1 or higher
     openssl req -new -key key.pem \
     -subj "/CN=wca-scheduler.wca-scheduler.svc" \
     -addext "subjectAltName=DNS:wca-scheduler.wca-scheduler.svc,IP:100.64.176.36" \
@@ -114,7 +115,7 @@ The Secret will be forwarded to wca-scheduler.
     kubectl get csr wca-scheduler.wca-scheduler -o jsonpath='{.status.certificate}' | base64 --decode > server.crt
 
     # Create Secret with the certificate and the private key
-    kubectl create secret generic wca-scheduler-cert --from-file server.crt --from-file server-key.pem --namespace wca-scheduler
+    kubectl create secret generic wca-scheduler-cert --from-file server.crt --from-file key.pem --namespace wca-scheduler
 
 mTLS connection
 ---------------
