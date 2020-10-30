@@ -74,16 +74,42 @@ and store them in metrics_storage component.
     Allows fine grained control over allocations.
     (defaults to AllocationConfiguration() instance)
 
-- ``wss_reset_interval``: **int** = *0*
+- ``wss_reset_cycles``: **Optional[int]** = *None*
 
     Interval of resetting WSS (WorkingSetSize).
-    (defaults to 0, which means that metric is not collected, e.g. when set to 1
-    ``clear_refs`` will be reset every measurement iteration defined by ``interval`` option.)
+    (defaults to None, which means that metric is not collected at all, e.g. when set to 1
+    ``clear_refs`` will be reset every measurement iteration defined by global ``interval``
+    option.)
+    If set to 0, referenced bytes will be collected but will not be reset in cycling manner.
 
-- ``wss_stable_duration``: **int** = *30*
+- ``wss_stable_cycles``: **int** = *0*
 
-    Number of stable cycles after which wss is considered stable. Will not have any impact
-    unless wss_reset_interval is greater than 0
+    Number of stable cycles after which "referenced bytes rate" is considered stable.
+    Optionaly if postive and wss_reset_cycles is 0, then after stabilization period
+    will reset "referenced bytes".
+
+    It's behavior depends on wss_reset_cycles:
+    - completly ignored if wss_reset_cycles is None (referenced bytes and WSS is disabled).
+    - if "wss_reset_cycles" is set to special value "0" and "wss_stable_cycles" is positive then
+      after achieving stability "referenced bytes" will be reset (to restart cycle).
+
+    Can be specified as neagtive number which means that stabililty check is enabled
+    but after stabilization the "referenced bytes" will not bet reset
+    (relay on wss_reset_cycles to be positive and reset).
+
+    Expressed in number of WCA measurements intervals (cycles).
+    E.g. if global interval is set to 15s and wss_stable_cycles is set to 40 cycles,
+    the "stability condition" is met in consecutive 40 cycles (about 600s = 10 minutes).
+
+
+- ``wss_membw_threshold``: **Optional[float]** = *None*
+
+    Value used to calculate threshold based on fraction of memory bandwidth (transferred bytes)
+    to treat referenced value as stable and return WSS.
+    Memory bandwidth multiplied by this value.  None means condition is ignored and
+    task_working_set_size_bytes metric will not be collected.
+
+    E.g. 0.1 means membw * 0.1 = which equals to 10% of memory bandwidth.
 
 - ``include_optional_labels``: **bool** = *False*
 
@@ -105,6 +131,16 @@ and store them in metrics_storage component.
     will be collected.  False means disable the collection.
 
     If string is provided it will be used as regexp to match key.
+
+- ``sched``: **Union[Str, bool]** = *False*
+
+    Responsible for collecting data from /proc/PID/sched metric:
+    - task_sched_stat (lines with ':'),
+    - task_sched_stat_numa_faults (numa_faults field).
+    By default sched is enabled and all metrics (lines from /proc/PID/sched containg ':')
+    will be collected.  False means disable the collection.
+
+    If string is provided it will be used as regexp to match key (string before ':')
 
 
 
@@ -131,7 +167,7 @@ in anomalies_storage and all other measurements in metrics_storage.
 
     Storage to store serialized anomalies and extra metrics.
 
-- ``allocations_storage``: **tdwiboolype** = `DEFAULT_STORAGE`
+- ``allocations_storage``: **Storage** = `DEFAULT_STORAGE`
 
     Storage to store serialized resource allocations.
 

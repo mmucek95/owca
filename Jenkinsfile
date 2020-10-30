@@ -17,15 +17,13 @@ pipeline {
     parameters {
       booleanParam defaultValue: true, description: 'Run all pre-checks.', name: 'PRECHECKS'
       booleanParam defaultValue: true, description: 'Build WCA image.', name: 'BUILD_WCA_IMAGE'
-      booleanParam defaultValue: true, description: 'Build wrappers and workload images.', name: 'BUILD_IMAGES'
-      booleanParam defaultValue: true, description: 'E2E for Kubernetes.', name: 'E2E_K8S'
+      booleanParam defaultValue: true, description: 'Build workload images.', name: 'BUILD_IMAGES'
       booleanParam defaultValue: true, description: 'E2E for Kubernetes as Daemonset.', name: 'E2E_K8S_DS'
       booleanParam defaultValue: true, description: 'E2E for wca-scheduler', name: 'E2E_WCA_SCHEDULER'
       string defaultValue: '300', description: 'Sleep time for E2E tests', name: 'SLEEP_TIME'
     }
     environment {
         DOCKER_REPOSITORY_URL = '100.64.176.12:80'
-        CADVISOR_REVISION = 'master'
     }
     stages{
         stage("Flake8 formatting scan") {
@@ -77,18 +75,6 @@ pipeline {
                 '''
             }
         }
-        stage("Build pex files") {
-            when {expression{return params.BUILD_IMAGES}}
-            steps {
-                sh '''
-                  # speed up pex wrapper build time
-                  # requieres .pex-build already filled with requirments
-                  #export ADDITIONAL_PEX_OPTIONS='--no-index --cache-ttl=604800'
-                  make _unsafe_wrapper_package
-                '''
-                archiveArtifacts(artifacts: "dist/**")
-            }
-        }
         stage("Check code with bandit") {
             when {expression{return params.PRECHECKS}}
              steps {
@@ -126,22 +112,26 @@ pipeline {
                     when {expression{return params.BUILD_IMAGES}}
                     steps {
                     sh '''
+                    CADVISOR_REVISION=$(git ls-remote git://github.com/wacuuu/cadvisor.git jwalecki/merged-features | cut -c -7)
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/wca/cadvisor:${CADVISOR_REVISION}
-                    IMAGE_DIR=${WORKSPACE}/cadvisor
-                    if [ -d cadvisor ]; then
-                        rm -fr cadvisor
-                    fi
-                    mkdir cadvisor
-                    pushd cadvisor
-                    git init .
-                    git remote add origin https://github.com/google/cadvisor.git
-                    git fetch origin ${CADVISOR_REVISION} --depth=1
-                    git checkout FETCH_HEAD
-
-                    docker build -t ${IMAGE_NAME} -f ../examples/kubernetes/monitoring/cadvisor/Dockerfile.cadvisor .
+                    IMAGE_DIR=${WORKSPACE}/examples/kubernetes/monitoring/cadvisor
+                    docker build --no-cache -t ${IMAGE_NAME} -f ${IMAGE_DIR}/Dockerfile.cadvisor ${IMAGE_DIR}
                     docker push ${IMAGE_NAME}
-                    popd
-                    rm -fr cadvisor
+                    '''
+                    }
+                }
+                stage("Build and push wca_scheduler Docker image") {
+                    when {expression{return params.BUILD_IMAGES}}
+                    steps {
+                    sh '''
+                    IMAGE_NAME=${DOCKER_REPOSITORY_URL}/wca-scheduler:${GIT_COMMIT}
+                    BRANCH_IMAGE_NAME=${DOCKER_REPOSITORY_URL}/wca-scheduler:${GIT_BRANCH}
+                    IMAGE_DIR=${WORKSPACE}/examples/kubernetes/wca-scheduler
+                    docker build -t ${IMAGE_NAME} -f ${IMAGE_DIR}/Dockerfile .
+                    docker push ${IMAGE_NAME}
+                    docker tag ${IMAGE_NAME} ${BRANCH_IMAGE_NAME}
+                    docker push ${BRANCH_IMAGE_NAME}
+                    docker rmi ${IMAGE_NAME} ${BRANCH_IMAGE_NAME}
                     '''
                     }
                 }
@@ -300,6 +290,22 @@ pipeline {
                     '''
                     }
                 }
+                // pmbench
+                stage("Build and push pmbench Docker image") {
+                    when {expression{return params.BUILD_IMAGES}}
+                    steps {
+                    sh '''
+                    IMAGE_NAME=${DOCKER_REPOSITORY_URL}/wca/pmbench:${GIT_COMMIT}
+                    BRANCH_IMAGE_NAME=${DOCKER_REPOSITORY_URL}/wca/pmbench:${GIT_BRANCH}
+                    IMAGE_DIR=${WORKSPACE}/examples/workloads/pmbench
+                    docker build -t ${IMAGE_NAME} -f ${IMAGE_DIR}/Dockerfile ${IMAGE_DIR}
+                    docker push ${IMAGE_NAME}
+                    docker tag ${IMAGE_NAME} ${BRANCH_IMAGE_NAME}
+                    docker push ${BRANCH_IMAGE_NAME}
+                    docker rmi ${IMAGE_NAME} ${BRANCH_IMAGE_NAME}
+                    '''
+                    }
+                }
                 stage("Build and push mysql_tpm_gauge Docker image") {
                     when {expression{return params.BUILD_IMAGES}}
                     steps {
@@ -354,73 +360,33 @@ pipeline {
             }
         }
         stage('WCA E2E tests') {
-			/* If commit message contains substring [e2e-skip] then this stage is omitted. */
-            when {
-                expression {
-                    return if_perform_e2e()
-                }
-            }
+            agent { label 'Kubernetes' }
+            when {expression{return params.E2E_K8S_DS}}
             environment {
-                /* For E2E tests. */
-                PLAYBOOK = 'examples/workloads/run_workloads.yaml'
-                PROMETHEUS = 'http://100.64.176.12:9090'
                 BUILD_COMMIT="${GIT_COMMIT}"
-                EXTRA_ANSIBLE_PARAMS = " "
-                LABELS="{additional_labels: {build_number: \"${BUILD_NUMBER}\", build_node_name: \"${NODE_NAME}\", build_commit: \"${GIT_COMMIT}\"}}"
                 RUN_WORKLOADS_SLEEP_TIME = "${params.SLEEP_TIME}"
-                INVENTORY="tests/e2e/demo_scenarios/common/inventory.yaml"
-                TAGS = "stress_ng,redis_rpc_perf,twemcache_rpc_perf,twemcache_mutilate,specjbb"
+                PROMETHEUS='http://100.64.176.18:30900'
+                KUBERNETES_HOST='100.64.176.32'
+                KUBECONFIG="${HOME}/.kube/admin.conf"
+                KUSTOMIZATION_MONITORING='examples/kubernetes/monitoring/'
+                KUSTOMIZATION_WORKLOAD='examples/kubernetes/workloads/'
             }
-            failFast true
-            parallel {
-                stage('WCA Daemonset E2E for Kubernetes') {
-                    when {expression{return params.E2E_K8S_DS}}
-                    agent { label 'Daemonset' }
-                    environment {
-                        PROMETHEUS = 'http://100.64.176.18:30900'
-                        KUBERNETES_HOST='100.64.176.32'
-                        KUBECONFIG="${HOME}/.kube/admin.conf"
-                        KUSTOMIZATION_MONITORING='examples/kubernetes/monitoring/'
-                        KUSTOMIZATION_WORKLOAD='examples/kubernetes/workloads/'
-                    }
-                    steps {
-                        kustomize_wca_and_workloads_check()
-                    }
-                    post {
-                        always {
-                            print('Cleaning workloads and wca...')
-                            sh "kubectl delete -k ${WORKSPACE}/${KUSTOMIZATION_WORKLOAD} --wait=false"
-                            sh "kubectl delete -k ${WORKSPACE}/${KUSTOMIZATION_MONITORING} --wait=false"
-                            sh "kubectl delete svc prometheus-nodeport-service --namespace prometheus"
-                            junit 'unit_results.xml'
-                        }
-                    }
-                }
-                stage('WCA E2E for Kubernetes') {
-                    when {expression{return params.E2E_K8S}}
-                    agent { label 'kubernetes' }
-                    environment {
-                        KUBERNETES_HOST='100.64.176.17'
-                        CRT_PATH = '/etc/kubernetes/ssl'
-                        CONFIG = 'wca_config_kubernetes.yaml'
-                        HOST_INVENTORY='tests/e2e/demo_scenarios/common/inventory-kubernetes.yaml'
-                        CERT='true'
-                        KUBECONFIG="${HOME}/admin.conf"
-                    }
-                    steps {
-                        wca_and_workloads_check()
-                    }
-                    post {
-                        always {
-                            clean()
-                        }
-                    }
+            steps {
+                kustomize_wca_and_workloads_check()
+            }
+            post {
+                always {
+                    print('Cleaning workloads and wca...')
+                    sh "kustomize build ${WORKSPACE}/${KUSTOMIZATION_WORKLOAD} | kubectl delete -f - --wait=false || true"
+                    sh "kustomize build ${WORKSPACE}/${KUSTOMIZATION_MONITORING} | kubectl delete -f -  --wait=false || true"
+                    sh "kubectl delete svc prometheus-nodeport-service --namespace prometheus || true" 
+                    junit 'unit_results.xml'
                 }
             }
         }
         stage('E2E wca-scheduler') {
                 when {expression{return params.E2E_WCA_SCHEDULER}}
-                agent { label 'kubernetes' }
+                agent { label 'Kubernetes' }
                 environment {
                     PROMETHEUS='http://100.64.176.18:30900'
                     KUBERNETES_HOST='100.64.176.18'
@@ -436,6 +402,7 @@ pipeline {
                     sh "sed -i 's#/var/run/secrets/kubernetes.io/serviceaccount/ca.crt;#/var/run/secrets/kubernetes.io/cert/CA.crt;#g' ${WORKSPACE}/${WCA_SCHEDULER_PATH}wca-scheduler-server.conf"
                     sh "sed -i 's/node36/node18/g' ${WORKSPACE}/${WCA_SCHEDULER_PATH}wca-scheduler-deployment.yaml"
                     sh "sed -i 's/100.64.176.36/${KUBERNETES_HOST}/g' ${WORKSPACE}/${WCA_SCHEDULER_PATH}config.yaml"
+                    sh "sed -i 's/master/${GIT_COMMIT}/g' ${WORKSPACE}/${WCA_SCHEDULER_PATH}kustomization.yaml"
 
                     sh "kubectl --namespace wca-scheduler create secret generic wca-scheduler-cert \
                         --from-file ${WORKSPACE}/tests/e2e/nginx/server.crt \
@@ -443,7 +410,7 @@ pipeline {
                         --from-file ${WORKSPACE}/tests/e2e/nginx/CA.crt"
 
                     print('Starting wca-wcheduler...')
-                    sh "kubectl apply -k ${WORKSPACE}/${WCA_SCHEDULER_PATH}"
+                    sh "kustomize build ${WORKSPACE}/${WCA_SCHEDULER_PATH} | kubectl apply -f - "
 
                     print('Create Service for wca-scheduler, for E2E only')
                     sh "kubectl expose deployment wca-scheduler --type=NodePort --port=30180 --name=wca-scheduler-nodeport-service --namespace wca-scheduler && \
@@ -460,9 +427,9 @@ pipeline {
                 post {
                     always {
                         print('Cleaning wca-scheduler...')
-                        sh "kubectl delete -k ${WORKSPACE}/${WCA_SCHEDULER_PATH} --wait=false"
-                        sh "kubectl delete secret  wca-scheduler-cert -n wca-scheduler"
-                        sh "kubectl delete svc wca-scheduler-nodeport-service --namespace wca-scheduler"
+                        sh "kustomize build ${WORKSPACE}/${WCA_SCHEDULER_PATH} | kubectl delete -f - --wait=false || true"
+                        sh "kubectl delete secret wca-scheduler-cert -n wca-scheduler || true"
+                        sh "kubectl delete svc wca-scheduler-nodeport-service --namespace wca-scheduler || true"
                         print('Asserting unit tests status...')
                         junit 'unit_results.xml'
                     }
@@ -476,38 +443,6 @@ pipeline {
 /*----------------------------------------------------------------------------------------------------------*/
 /* Helper function */
 /*----------------------------------------------------------------------------------------------------------*/
-def wca_and_workloads_check() {
-    print('-wca_and_workloads_check-')
-    sh "echo GIT_COMMIT=$GIT_COMMIT"
-    // stress_ng,redis_rpc_perf,twemcache_rpc_perf,twemcache_mutilate,specjbb
-    image_check("wca")
-    image_check("wca/stress_ng")
-    image_check("wca/rpc_perf")
-    image_check("wca/twemcache")
-    image_check("wca/mutilate")
-    image_check("wca/specjbb")
-    sh "make venv"
-    sh "make wca_package_in_docker_with_kafka"
-    sh "make hadolint_check"
-    print('Reconfiguring wca...')
-    copy_files("${WORKSPACE}/tests/e2e/demo_scenarios/common/${CONFIG}", "${WORKSPACE}/tests/e2e/demo_scenarios/common/wca_config.yml.tmp")
-    replace_in_config(CERT)
-    copy_files("${WORKSPACE}/tests/e2e/demo_scenarios/common/wca_config.yml.tmp", "/etc/wca/wca_config.yml", true)
-    sh "sudo chown wca /etc/wca/wca_config.yml"
-    copy_files("${WORKSPACE}/dist/wca.pex", "/usr/bin/wca.pex", true)
-    copy_files("${WORKSPACE}/tests/e2e/demo_scenarios/common/wca.service", "/etc/systemd/system/wca.service", true)
-    sh "sudo systemctl daemon-reload"
-    print('Start wca...')
-    start_wca()
-    copy_files("${WORKSPACE}/${HOST_INVENTORY}", "${WORKSPACE}/${INVENTORY}")
-    replace_commit()
-    print('Run workloads...')
-    run_workloads("${EXTRA_ANSIBLE_PARAMS}", "${LABELS}")
-    print('Sleeping...')
-    sleep RUN_WORKLOADS_SLEEP_TIME
-    print('Test E2E metrics...')
-    test_wca_metrics()
-}
 
 def kustomize_wca_and_workloads_check() {
     print('-kustomize_wca_and_workloads_check-')
@@ -529,7 +464,7 @@ def kustomize_wca_and_workloads_check() {
     }
 
     print('Starting wca...')
-    sh "kubectl apply -k ${WORKSPACE}/${KUSTOMIZATION_MONITORING}"
+    sh "kustomize build ${WORKSPACE}/${KUSTOMIZATION_MONITORING} | kubectl apply -f -"
     sleep 40
 
     print('Create Service for Prometheus, for E2E only')
@@ -538,7 +473,7 @@ def kustomize_wca_and_workloads_check() {
         {\"op\": \"replace\", \"path\": \"/spec/ports/0/nodePort\", \"value\":30900}]'"
 
     print('Deploy workloads...')
-    sh "kubectl apply -k ${WORKSPACE}/${KUSTOMIZATION_WORKLOAD}"
+    sh "kustomize build ${WORKSPACE}/${KUSTOMIZATION_WORKLOAD} | kubectl apply -f - "
 
     print('Scale up workloads...')
     def list = ["mysql-hammerdb", "stress-stream", "redis-memtier", "sysbench-memory", "memcached-mutilate", "specjbb-preset"]
@@ -608,119 +543,6 @@ def image_check(image_name) {
     }
 }
 
-
-def clean() {
-    print('Cleaning: stopping WCA and workloads .')
-    stop_wca()
-    stop_workloads("${EXTRA_ANSIBLE_PARAMS}")
-    junit 'unit_results.xml'
-}
-
-def copy_files(src, dst, sudo=false) {
-    if(sudo){
-        sh "sudo cp -r ${src} ${dst}"
-    }
-    else{
-        sh "cp -r ${src} ${dst}"
-    }
-}
-
-
-def replace_commit() {
-        contentReplace(
-            configs: [
-                fileContentReplaceConfig(
-                    configs: [
-                        fileContentReplaceItemConfig( search: 'BUILD_COMMIT', replace: "${GIT_COMMIT}", matchCount: 0),
-                    ],
-                    fileEncoding: 'UTF-8',
-                    filePath: "${WORKSPACE}/tests/e2e/demo_scenarios/common/inventory.yaml")])
-}
-
-def replace_in_config(cert='false') {
-    if(cert == 'true') {
-        contentReplace(
-            configs: [
-                fileContentReplaceConfig(
-                    configs: [
-                        fileContentReplaceItemConfig( search: 'BUILD_COMMIT', replace: "${GIT_COMMIT}", matchCount: 0),
-                        fileContentReplaceItemConfig( search: 'BUILD_NUMBER', replace: "${BUILD_NUMBER}", matchCount: 0),
-                        fileContentReplaceItemConfig( search: 'CRT_PATH', replace: "${CRT_PATH}", matchCount: 0)
-                    ],
-                    fileEncoding: 'UTF-8',
-                    filePath: "${WORKSPACE}/tests/e2e/demo_scenarios/common/wca_config.yml.tmp")])
-    }
-    else {
-        contentReplace(
-            configs: [
-                fileContentReplaceConfig(
-                    configs: [
-                        fileContentReplaceItemConfig( search: 'BUILD_COMMIT', replace: "${GIT_COMMIT}", matchCount: 0),
-                        fileContentReplaceItemConfig( search: 'BUILD_NUMBER', replace: "${BUILD_NUMBER}", matchCount: 0)
-                    ],
-                    fileEncoding: 'UTF-8',
-                    filePath: "${WORKSPACE}/tests/e2e/demo_scenarios/common/wca_config.yml.tmp")])
-    }
-}
-
-
-def start_wca() {
-    print('Starting wca...')
-    sh "sudo systemctl restart wca"
-    sleep 5
-    sh "sudo systemctl status wca"
-}
-
-def stop_wca() {
-    print('Stopping wca...')
-    sh "sudo systemctl stop wca"
-    print('Stopped wca.')
-}
-
-def run_workloads(extra_params, labels) {
-    dir('workloads') {
-        print('Starting workloads...')
-        sh '''ansible-playbook ${extra_params} -i ${WORKSPACE}/tests/e2e/demo_scenarios/run_workloads/inventory.yaml -i ${WORKSPACE}/${INVENTORY} --tags=${TAGS} -e "${LABELS}" ${WORKSPACE}/${PLAYBOOK}'''
-    }
-}
-
-def stop_workloads(extra_params) {
-    print('Stopping all workloads...')
-    sh "ansible-playbook  ${extra_params}  -i ${WORKSPACE}/${INVENTORY} --tags=clean_jobs ${WORKSPACE}/${PLAYBOOK}"
-    sleep 5
-}
-
-def remove_file(path) {
-    sh "sudo rm -f ${path}"
-}
-
-def test_wca_metrics() {
-    sh "make venv; source env/bin/activate && \
-        pytest ${WORKSPACE}/tests/e2e/test_wca_metrics.py::test_wca_metrics --junitxml=unit_results.xml --log-level=debug --log-cli-level=debug -v && \
-        deactivate"
-}
-def if_perform_e2e() {
-    /* Check whether in commit message there is [e2e-skip] substring: if so then skip e2e stage. */
-    /* I'm not 100% sure if checking of parents count is needed: it may be possible that just to take original
-       commit HEAD~1 is only needed.  */
-    parents_count = sh(returnStdout: true, script: "git show -s --pretty=%p HEAD | wc -w").trim()
-    print(parents_count)
-    if (parents_count == "1") {
-        result = sh(
-            returnStdout: true,
-            script: "git show HEAD | grep '\\[e2e-skip\\]' || true"
-        ).trim().split("\n").last().trim()
-        print(result)
-        return result == ""
-    } else {
-        result = sh(
-            returnStdout: true,
-            script: "git show HEAD~1 | grep '\\[e2e-skip\\]' || true"
-        ).trim().split("\n").last().trim()
-        print(result)
-        return result == ""
-    }
-}
 
 def generate_docs() {
     sh '''cp docs/metrics.rst docs/metrics.tmp.rst

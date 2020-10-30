@@ -14,11 +14,9 @@ spec:
       labels:
         app: pmbench
     spec:
-      nodeSelector:
-        goal: service
       terminationGracePeriodSeconds: 0
       containers:
-        - name: pmbench
+        - name: generator
           image: pmbench
           imagePullPolicy: Always
           envFrom:
@@ -28,7 +26,7 @@ spec:
             - sh
             - -c
             - >
-              ./pmbench/pmbench $extra
+              ./pmbench $extra
 
   # required for workaround bug with kustomize https://github.com/kubernetes-sigs/kustomize/issues/504
   # when using commonLabels

@@ -15,7 +15,7 @@
 
 import logging
 import pprint
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union, Pattern
 
 from abc import ABC, abstractmethod
 
@@ -23,6 +23,7 @@ from wca import cgroups, wss
 from wca import logger
 from wca import perf
 from wca import resctrl
+from wca import sched_stats
 from wca.allocators import AllocationConfiguration, TaskAllocations, AllocationType
 from wca.logger import TRACE
 from wca.metrics import Measurements, merge_measurements, \
@@ -115,9 +116,12 @@ class ContainerSet(ContainerInterface):
                  resgroup: ResGroup = None,
                  event_names: List[str] = None,
                  enable_derived_metrics: bool = False,
-                 wss_reset_interval: int = 0,
-                 wss_stable_duration: int = 30,
-                 perf_aggregate_cpus: bool = True
+                 wss_reset_cycles: Optional[int] = None,
+                 wss_stable_cycles: int = 0,
+                 wss_membw_threshold: Optional[float] = None,
+                 perf_aggregate_cpus: bool = True,
+                 interval: int = 5,
+                 sched: Union[bool, Pattern] = False,
                  ):
         self._cgroup_path = cgroup_path
         self._name = _sanitize_cgroup_path(self._cgroup_path)
@@ -131,6 +135,22 @@ class ContainerSet(ContainerInterface):
             cgroup_path=self._cgroup_path,
             platform=platform,
             allocation_configuration=allocation_configuration)
+        self.wss = None
+
+        if wss_reset_cycles is not None:
+            log.debug('Enable WSS measurments: interval=%s '
+                      'wss_reset_cycles=%s wss_stable_cycles=%s wss_membw_threshold=%s',
+                      interval, wss_reset_cycles, wss_stable_cycles, wss_membw_threshold)
+
+            self.wss = wss.WSS(
+                interval=interval,
+                get_pids=self.get_pids,
+                wss_reset_cycles=wss_reset_cycles,
+                wss_stable_cycles=wss_stable_cycles,
+                wss_membw_threshold=wss_membw_threshold,
+            )
+        else:
+            self.wss = None
 
         # Create Cgroup objects for children.
         self._subcontainers: Dict[str, Container] = {}
@@ -141,9 +161,9 @@ class ContainerSet(ContainerInterface):
                 allocation_configuration=allocation_configuration,
                 event_names=event_names,
                 enable_derived_metrics=enable_derived_metrics,
-                wss_reset_interval=wss_reset_interval,
-                wss_stable_duration=wss_stable_duration,
-                perf_aggregate_cpus=perf_aggregate_cpus
+                perf_aggregate_cpus=perf_aggregate_cpus,
+                interval=interval,
+                sched=sched,
             )
 
     def get_subcontainers(self):
@@ -199,10 +219,8 @@ class ContainerSet(ContainerInterface):
                     self._platform.rdt_information.rdt_mb_monitoring_enabled,
                     self._platform.rdt_information.rdt_cache_monitoring_enabled))
 
-        merged_measurements = []
-        for container in self.get_subcontainers():
-            container.parent_measurements = measurements
-            merged_measurements.append(container.get_measurements())
+        if self.wss is not None:
+            measurements.update(self.wss.get_measurements(measurements))
 
         merged_measurements = merge_measurements(
             [container.get_measurements() for container in self.get_subcontainers()])
@@ -268,10 +286,12 @@ class Container(ContainerInterface):
                  Optional[AllocationConfiguration] = None,
                  event_names: List[MetricName] = None,
                  enable_derived_metrics: bool = False,
-                 wss_reset_interval: int = 0,
-                 wss_stable_duration: int = 30,
+                 wss_reset_cycles: Optional[int] = None,
+                 wss_stable_cycles: int = 0,
+                 wss_membw_threshold: Optional[float] = None,
                  perf_aggregate_cpus: bool = True,
-                 interval: int = 5
+                 interval: int = 5,
+                 sched: Union[bool, Pattern] = False,
                  ):
         self._cgroup_path = cgroup_path
         self._name = _sanitize_cgroup_path(self._cgroup_path)
@@ -281,15 +301,25 @@ class Container(ContainerInterface):
         self._resgroup = resgroup
         self._event_names = event_names
         self._perf_aggregate_cpus = perf_aggregate_cpus
-        self.parent_measurements = None
+        self._sched = sched
 
         self._cgroup = cgroups.Cgroup(
             cgroup_path=self._cgroup_path,
             platform=platform,
             allocation_configuration=allocation_configuration)
 
-        if wss_reset_interval != 0:
-            self.wss = wss.WSS(interval, self.get_pids, wss_reset_interval, wss_stable_duration)
+        if wss_reset_cycles is not None:
+            log.debug('Enable WSS measurments: interval=%s '
+                      'wss_reset_cycles=%s wss_stable_cycles=%s wss_membw_threshold=%s',
+                      interval, wss_reset_cycles, wss_stable_cycles, wss_membw_threshold)
+
+            self.wss = wss.WSS(
+                interval=interval,
+                get_pids=self.get_pids,
+                wss_reset_cycles=wss_reset_cycles,
+                wss_stable_cycles=wss_stable_cycles,
+                wss_membw_threshold=wss_membw_threshold,
+            )
         else:
             self.wss = None
 
@@ -375,16 +405,24 @@ class Container(ContainerInterface):
         if self.wss:
             if self._resgroup:
                 wss_measurements = self.wss.get_measurements(rdt_measurements)
-            else:
-                wss_measurements = self.wss.get_measurements(self.parent_measurements)
         else:
             wss_measurements = {}
+
+        if self._sched is not False:
+            # sched debugs stats are collected per thread (krenel task) basis
+            pids = list(map(int, self._cgroup.get_pids(include_threads=True)))
+            sched_pattern = None if self._sched in (False, True) else self._sched
+            sched_measurements = sched_stats.get_pids_sched_measurements(
+                pids, pattern=sched_pattern)
+        else:
+            sched_measurements = {}
 
         return flatten_measurements([
             cgroup_measurements,
             rdt_measurements,
             perf_measurements,
             wss_measurements,
+            sched_measurements,
         ])
 
     def cleanup(self):
@@ -413,25 +451,30 @@ class ContainerManager:
     def __init__(self, platform: Platform,
                  allocation_configuration: Optional[AllocationConfiguration],
                  event_names: List[str], enable_derived_metrics: bool = False,
-                 wss_reset_interval: int = 0,
-                 wss_stable_duration: int = 30,
+                 wss_reset_cycles: Optional[int] = None,
+                 wss_stable_cycles: int = 30,
+                 wss_membw_threshold: Optional[float] = None,
                  perf_aggregate_cpus: bool = True,
-                 interval: int = 5
+                 interval: int = 5,
+                 sched: Union[bool, Pattern] = False,
                  ):
         self.containers: Dict[Task, ContainerInterface] = {}
         self._platform = platform
         self._allocation_configuration = allocation_configuration
         self._event_names = event_names
         self._enable_derived_metrics = enable_derived_metrics
-        self._wss_reset_interval = wss_reset_interval
-        self._wss_stable_duration = wss_stable_duration
+        self._wss_reset_cycles = wss_reset_cycles
+        self._wss_stable_cycles = wss_stable_cycles
+        self._wss_membw_threshold = wss_membw_threshold
         self._perf_aggregate_cpus = perf_aggregate_cpus
         self._interval = interval
+        self._sched = sched
 
     def _create_container(self, task: Task) -> ContainerInterface:
         """Check whether the task groups multiple containers,
            is so use ContainerSet class, otherwise Container class.
            ContainerSet shares interface with Container."""
+
         if len(task.subcgroups_paths):
             container = ContainerSet(
                 cgroup_path=task.cgroup_path,
@@ -440,9 +483,12 @@ class ContainerManager:
                 allocation_configuration=self._allocation_configuration,
                 event_names=self._event_names,
                 enable_derived_metrics=self._enable_derived_metrics,
-                wss_reset_interval=self._wss_reset_interval,
-                wss_stable_duration=self._wss_stable_duration,
+                wss_reset_cycles=self._wss_reset_cycles,
+                wss_stable_cycles=self._wss_stable_cycles,
+                wss_membw_threshold=self._wss_membw_threshold,
                 perf_aggregate_cpus=self._perf_aggregate_cpus,
+                interval=self._interval,
+                sched=self._sched,
             )
         else:
             container = Container(
@@ -451,10 +497,12 @@ class ContainerManager:
                 allocation_configuration=self._allocation_configuration,
                 event_names=self._event_names,
                 enable_derived_metrics=self._enable_derived_metrics,
-                wss_reset_interval=self._wss_reset_interval,
-                wss_stable_duration=self._wss_stable_duration,
+                wss_reset_cycles=self._wss_reset_cycles,
+                wss_stable_cycles=self._wss_stable_cycles,
+                wss_membw_threshold=self._wss_membw_threshold,
                 perf_aggregate_cpus=self._perf_aggregate_cpus,
-                interval=self._interval
+                interval=self._interval,
+                sched=self._sched,
             )
         # Every initialization aor reinitialization should reset managed counters.
         container.reset_counters()

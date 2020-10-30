@@ -15,10 +15,8 @@ spec:
         app: memcached-mutilate
     spec:
       terminationGracePeriodSeconds: 0
-      nodeSelector:
-        goal: service
       containers:
-        - name: memcached
+        - name: service
           image: memcached
           imagePullPolicy: Always
           envFrom:
@@ -33,7 +31,7 @@ spec:
               -m $memory
               -u root
               $extra
-        - name: mutilate
+        - name: generator
           image: mutilate
           imagePullPolicy: Always
           envFrom:

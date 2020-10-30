@@ -198,10 +198,13 @@ class Cgroup:
             raise MissingMeasurementException(
                 'File {} is missing. Metric unavailable.'.format(e.filename))
 
-        # Check whether consecutive keys.
-        assert (MetricName.TASK_MEM_NUMA_PAGES not in measurements or
-                list(measurements[MetricName.TASK_MEM_NUMA_PAGES].keys()) ==
-                [el for el in range(0, self.platform.numa_nodes)])
+        # Check whether consecutive keys for NUMA nodes.
+        # Happens during races when initializing "cpuless" NUMA nodes.
+        if (MetricName.TASK_MEM_NUMA_PAGES in measurements):
+            got_numa_nodes = list(measurements[MetricName.TASK_MEM_NUMA_PAGES].keys())
+            expected_numa_nodes = [el for el in range(0, self.platform.numa_nodes)]
+            if got_numa_nodes != expected_numa_nodes:
+                log.warning('NUMA node keys are not consecutive! Check NUMA nodes configuration!')
 
         return measurements
 
