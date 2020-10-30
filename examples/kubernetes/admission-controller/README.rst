@@ -45,9 +45,10 @@ Recommended parameters for key generations are:
     openssl ecparam -out key.pem -name prime256v1 -genkey
 
     # Generate a CSR. Change IP address to wca-scheduler node address!
+    # This command requires openssl version 1.1.1 or higher
     openssl req -new -key key.pem \
     -subj "/CN=webhook.webhook.svc" \
-    -addext "subjectAltName=DNSwebhook.webhook.svc,IP:100.64.176.36" \
+    -addext "subjectAltName=DNS:webhook.webhook.svc,IP:100.64.176.36" \
     -out server.csr \
 
 The next step is to create CSR Kubernetes object and send it to apiserver.
@@ -89,7 +90,7 @@ The Secret will be forwarded to wca-scheduler.
     kubectl create namespace webhook
 
     # Create Secret with the certificate and the private key
-    kubectl create secret generic webhook-secret --from-file server.crt --from-file server-key.pem --namespace webhook
+    kubectl create secret generic webhook-secret --from-file server.crt --from-file key.pem --namespace webhook
 
 Create MutatingWebhookConfiguration
 +++++++++++++++++++++++++++++++++++
