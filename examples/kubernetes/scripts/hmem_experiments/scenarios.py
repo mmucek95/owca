@@ -125,8 +125,10 @@ REDIS_WSS_SCENARIOS = [
              reset_workloads_between_steps=False),
     # First touch policy redis memtier big wss
     Scenario(name='redis-memtier-big-wss-first-touch-policy',
-             workloads_count=[{REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 1}, {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 2},
-                              {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 3}, {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 4}],
+             workloads_count=[{REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 1},
+                              {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 2},
+                              {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 3},
+                              {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 4}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NO_NUMA_BALANCING,
              reset_workloads_between_steps=False),
     # Numa balancing redis memtier big wss
@@ -135,8 +137,10 @@ REDIS_WSS_SCENARIOS = [
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NUMA_BALANCING),
     # Numa balancing redis memtier big wss run one by one
     Scenario(name='redis-memtier-big-wss-numa-balancing-one-by-one',
-             workloads_count=[{REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 1}, {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 2},
-                              {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 3}, {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 4}],
+             workloads_count=[{REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 1},
+                              {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 2},
+                              {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 3},
+                              {REDIS_MEMTIER_BIG_WSS_DRAM_PMEM: 4}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.HMEM_NUMA_BALANCING,
              reset_workloads_between_steps=False),
     # Toptier limit redis memtier big wss
@@ -145,8 +149,10 @@ REDIS_WSS_SCENARIOS = [
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER),
     # Toptier limit redis memtier big wss run one by one
     Scenario(name='redis-memtier-big-wss-toptier-limit-one-by-one',
-             workloads_count=[{REDIS_MEMTIER_BIG_WSS_TOPTIER: 1}, {REDIS_MEMTIER_BIG_WSS_TOPTIER: 2},
-                              {REDIS_MEMTIER_BIG_WSS_TOPTIER: 3}, {REDIS_MEMTIER_BIG_WSS_TOPTIER: 4}],
+             workloads_count=[{REDIS_MEMTIER_BIG_WSS_TOPTIER: 1},
+                              {REDIS_MEMTIER_BIG_WSS_TOPTIER: 2},
+                              {REDIS_MEMTIER_BIG_WSS_TOPTIER: 3},
+                              {REDIS_MEMTIER_BIG_WSS_TOPTIER: 4}],
              sleep_duration=SLEEP_DURATION, experiment_type=ExperimentType.TOPTIER,
              reset_workloads_between_steps=False),
     # Toptier with coldstart redis memtier big wss
