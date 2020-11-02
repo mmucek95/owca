@@ -42,7 +42,7 @@ Recommended parameters for key generations are:
 .. code-block:: shell
 
     # Generate a private key
-    openssl ecparam -out key.pem -name prime256v1 -genkey
+    openssl ecparam -out server-key.pem -name prime256v1 -genkey
 
     # Generate a CSR. Change IP address to wca-scheduler node address!
     # This command requires openssl version 1.1.1 or higher
