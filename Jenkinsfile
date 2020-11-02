@@ -407,7 +407,7 @@ pipeline {
 
                     sh "kubectl --namespace wca-scheduler create secret generic wca-scheduler-cert \
                         --from-file ${WORKSPACE}/tests/e2e/nginx/server.crt \
-                        --from-file ${WORKSPACE}/tests/e2e/nginx/key.pem \
+                        --from-file ${WORKSPACE}/tests/e2e/nginx/server-key.pem \
                         --from-file ${WORKSPACE}/tests/e2e/nginx/CA.crt"
 
                     print('Starting wca-wcheduler...')
