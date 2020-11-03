@@ -28,14 +28,13 @@ log = logging.getLogger(__name__)
 
 class AnnotatingService:
     """
-    
     """
     def __init__(self, configuration: Dict[str, str]):
         """
         self.dram_only_threshold - set to 100.0, to not use this functionality, otherwise it can
             be decided that despite having wss/rss < 100% all memory will be allocated on DRAM.
-        self.cold_start_duration - whether to start the workload on PMEM memory, if memory type for workload is
-            DRAM,PMEM, duration of that period if set
+        self.cold_start_duration - whether to start the workload on PMEM memory, if memory type
+            for workload is DRAM,PMEM, duration of that period if set
         self.if_toptier_limit - whether to add toptier_limit annotation
         """
         self.data_provider: AppDataProvider = configuration['data_provider']
@@ -43,7 +42,7 @@ class AnnotatingService:
 
         self.dram_only_threshold: float = configuration.get('dram_threshold', 100.0)
         self.cold_start_duration: Optional[int] = None
-        self.if_toptier_limit: bool = True 
+        self.if_toptier_limit: bool = True
 
         self.monitored_namespaces: List[str] = \
             configuration.get('monitored_namespaces', ['default'])
@@ -111,7 +110,8 @@ class AnnotatingService:
             annotations.update({'cri-resource-manager.intel.com/memory-type': memory_type})
 
             if memory_type == MemoryType.HMEM and self.cold_start_duration is not None:
-                annotations.update({'cri-resource-manager.intel.com/cold-start': {'duration': self.cold_start_duration}})
+                annotations.update({'cri-resource-manager.intel.com/cold-start':
+                                        {'duration': self.cold_start_duration}})
 
         if not modified_spec["metadata"].get(annotations_key) and annotations:
             modified_spec["metadata"].update({annotations_key: {}})
