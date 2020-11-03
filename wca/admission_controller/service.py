@@ -111,7 +111,7 @@ class AnnotatingService:
 
             if memory_type == MemoryType.HMEM and self.cold_start_duration is not None:
                 annotations.update({'cri-resource-manager.intel.com/cold-start':
-                                        {'duration': self.cold_start_duration}})
+                                   {'duration': self.cold_start_duration}})
 
         if not modified_spec["metadata"].get(annotations_key) and annotations:
             modified_spec["metadata"].update({annotations_key: {}})
