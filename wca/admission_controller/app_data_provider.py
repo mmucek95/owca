@@ -19,8 +19,8 @@ from wca.prometheus import Prometheus
 @dataclass
 class Queries:
     APP_WSS: str = \
-        'max(quantile_over_time(0.95, task_working_set_size_bytes[7d:2m])) by (app) / 1e9'
-    APP_RSS: str = 'max(quantile_over_time(0.95, task_mem_usage_bytes[7d:2m])) by (app) / 1e9'
+        'app_req{dim="wss"}'
+    APP_RSS: str = 'app_rss'
 
 
 class AppDataProvider:
