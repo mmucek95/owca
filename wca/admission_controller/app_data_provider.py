@@ -18,9 +18,8 @@ from wca.prometheus import Prometheus
 
 @dataclass
 class Queries:
-    APP_WSS: str = \
-        'app_req{dim="wss"}'
-    APP_RSS: str = 'app_rss'
+    APP_WSS: str = 'app_req{dim="wss"}'
+    APP_RSS: str = 'app_req{dim="mem"}'
 
 
 class AppDataProvider:
