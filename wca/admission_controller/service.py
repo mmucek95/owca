@@ -102,10 +102,11 @@ class AnnotatingService:
         wss: Optional[str] = self._get_wss(app_name)
         rss: Optional[str] = self._get_rss(app_name)
 
-        if wss is not None and rss is not None:
+        if wss is not None:
             if self.if_toptier_limit:
-                annotations.update({'toptierlimit.cri-resource-manager.intel.com/pod': wss})
+                annotations.update({'toptierlimit.cri-resource-manager.intel.com/pod': '{}G'.format(wss)})
 
+        if wss is not None and rss is not None:
             memory_type = self._get_memory_type(wss, rss)
             annotations.update({'cri-resource-manager.intel.com/memory-type': memory_type})
 
