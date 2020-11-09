@@ -7,9 +7,7 @@ loggers:
 kubeapi: &kubeapi !Kubeapi
   host: !Env KUBERNETES_SERVICE_HOST
   port: !Env KUBERNETES_SERVICE_PORT
-algorithm: !Score
-  score_target: 1.5
-  max_node_score: 10000.
+algorithm: !Fit
   dimensions:
     - mem
     - cpu
