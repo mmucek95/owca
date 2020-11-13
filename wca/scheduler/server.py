@@ -26,9 +26,10 @@ from flask import Flask, request, jsonify
 from wca.config import Numeric
 from wca.metrics import Metric, MetricType
 from wca.scheduler.algorithms import Algorithm, RescheduleResult
+from wca.scheduler.data_providers import DataProvider
 from wca.scheduler.kubeapi import Kubeapi
 from wca.scheduler.metrics import MetricName
-from wca.scheduler.types import ExtenderArgs, ExtenderFilterResult
+from wca.scheduler.types import ExtenderArgs, ExtenderFilterResult, ResourceType
 
 log = logging.getLogger(__name__)
 
@@ -75,20 +76,6 @@ class Server:
             }
         )
 
-    def _get_wss(self, app_name) -> Optional[str]:
-        wss_per_app = self.data_provider.get_wss()
-        log.debug('wss={}, app={}'.format(wss_per_app, app_name))
-        if app_name in wss_per_app:
-            return str(wss_per_app[app_name])
-        return None
-
-    def _get_rss(self, app_name) -> Optional[str]:
-        rss_per_app = self.data_provider.get_rss()
-        log.debug('rss={}, app={}'.format(rss_per_app, app_name))
-        if app_name in rss_per_app:
-            return str(rss_per_app[app_name])
-        return None
-
     def _get_memory_type(self, wss: str, rss: str):
         ratio = float(wss) / float(rss) * 100
         if ratio > self.dram_only_threshold:
@@ -110,8 +97,10 @@ class Server:
             return self._create_patch(spec, modified_spec)
 
         app_name: str = modified_spec["metadata"]["labels"]["app"]
-        wss: Optional[str] = self._get_wss(app_name)
-        rss: Optional[str] = self._get_rss(app_name)
+        requested_resources = self.data_provider.get_apps_requested_resources(
+            [ResourceType.WSS, ResourceType.MEM])
+        wss: Optional[str] = str(requested_resources[app_name][ResourceType.WSS])
+        rss: Optional[str] = str(requested_resources[app_name][ResourceType.MEM])
 
         if wss is not None:
             if self.if_toptier_limit:
@@ -144,9 +133,13 @@ class Server:
         self.app = Flask('k8s scheduler extender')
         self.algorithm: Algorithm = configuration.get('algorithm')
         self.kubeapi: Kubeapi = configuration.get('kubeapi')
+        self.data_provider: DataProvider = configuration.get('data_provider')
         self.dram_only_threshold: float = configuration.get('dram_threshold', 100.0)
         self.cold_start_duration: Optional[int] = None
         self.if_toptier_limit: bool = True
+
+        self.monitored_namespaces: List[str] = \
+            configuration.get('monitored_namespaces', ['default'])
 
         reschedule_interval = configuration.get('reschedule_interval')
 
