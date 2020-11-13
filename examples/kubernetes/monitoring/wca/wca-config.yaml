@@ -9,7 +9,7 @@ loggers:
   wca.wss: debug
 
 runner: !MeasurementRunner
-  interval: 10.0
+  interval: 60.0
   node: !KubernetesNode
     cgroup_driver: cgroupfs
     monitored_namespaces: ["default"]
