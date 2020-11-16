@@ -63,7 +63,8 @@ class Server:
             self.reschedule()
             time.sleep(interval)
 
-    def _create_patch(self, spec, modified_spec, message='Patching pod'):
+    @staticmethod
+    def _create_patch(spec, modified_spec, message='Patching pod'):
         patch = jsonpatch.JsonPatch.from_diff(spec, modified_spec)
         return jsonify(
             {
@@ -105,7 +106,7 @@ class Server:
         if wss is not None:
             if self.if_toptier_limit:
                 annotations.update({'toptierlimit.cri-resource-manager.intel.com/pod':
-                                        '{}G'.format(wss)})
+                                    '{}G'.format(wss)})
 
         if wss is not None and rss is not None:
             memory_type = self._get_memory_type(wss, rss)
