@@ -5,11 +5,12 @@
 # - HOST_IP - need to explicitly enabled in Pod spec using downward-api
 # - HOSTNAME - default provided by OS
 
-loggers:
-  wca.wss: debug
+# Example to enable WSS heuristic debugging.
+#loggers:
+#  wca.wss: debug
 
 runner: !MeasurementRunner
-  interval: 10.0
+  interval: 60.0 
   node: !KubernetesNode
     cgroup_driver: cgroupfs
     monitored_namespaces: ["default"]
@@ -43,4 +44,5 @@ runner: !MeasurementRunner
 
   # Collect metrics from proc/PID/sched to debug numa issues
   # sched: True
+  
   gather_hw_mm_topology: True
