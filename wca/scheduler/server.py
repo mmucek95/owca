@@ -78,7 +78,10 @@ class Server:
         )
 
     def _get_memory_type(self, wss: str, rss: str):
-        ratio = float(wss) / float(rss) * 100
+        rss = float(rss)
+        if not rss:
+            return MemoryType.HMEM
+        ratio = float(wss) / rss * 100
         if ratio > self.dram_only_threshold:
             memory_type = MemoryType.DRAM
         else:
