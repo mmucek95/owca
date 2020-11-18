@@ -19,7 +19,7 @@
 # https://jeltef.github.io/PyLaTeX/current/examples/multirow.html
 
 from typing import List
-from pylatex import Document, Section, Subsection, Tabular, Figure, VerticalSpace, LineBreak
+from pylatex import Document, Section, Subsection, Tabular, VerticalSpace, LineBreak
 from pylatex.utils import bold
 from datetime import datetime
 
@@ -27,8 +27,6 @@ import metrics
 from metrics import Metric
 from model import Node
 
-import matplotlib.pyplot as plt
-import numpy as np
 import logging
 
 AVG = 'avg'
@@ -152,7 +150,6 @@ class ExperimentResults:
                        NUMA_NODE_0, NUMA_NODE_1, NUMA_NODE_2, NUMA_NODE_3, mbw_local, mbw_remote))
         table.add_hline()
         return table
-
 
     @staticmethod
     def create_nodes_table():
