@@ -134,15 +134,17 @@ def run_experiment(scenario: Scenario, number_of_workloads):
             patch_toptier_limit(workload_name, base_toptier_value)
 
     _set_configuration(EXPERIMENT_CONFS[scenario.experiment_type])
-    for worklad_name, toptier_value in scenario.modify_toptier_limit.items():
-        patch_toptier_limit(worklad_name, toptier_value)
+    if scenario.modify_toptier_limit:
+        for worklad_name, toptier_value in scenario.modify_toptier_limit.items():
+            patch_toptier_limit(worklad_name, toptier_value)
     start_timestamp = time()
     _run_workloads(number_of_workloads, scenario.sleep_duration,
                    scenario.reset_workloads_between_steps)
     stop_timestamp = time()
     # restore old toptier value
-    for workload_name in scenario.modify_toptier_limit.keys():
-        patch_toptier_limit(workload_name, get_base_toptier_limit(workload_name))
+    if scenario.modify_toptier_limit:
+        for workload_name in scenario.modify_toptier_limit.keys():
+            patch_toptier_limit(workload_name, get_base_toptier_limit(workload_name))
     return Experiment(scenario.name, number_of_workloads, scenario.experiment_type,
                       EXPERIMENT_DESCRIPTION[scenario.experiment_type],
                       start_timestamp, stop_timestamp)
