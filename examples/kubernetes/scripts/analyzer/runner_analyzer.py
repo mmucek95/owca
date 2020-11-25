@@ -19,8 +19,8 @@ import json
 from typing import Dict, List
 import logging
 
+from model import Task, Node
 from serializator import AnalyzerQueries
-from model import Stat, Task, Node, ExperimentMeta, ExperimentType, WStat, ClusterInfoLoader
 from results import ExperimentResults
 
 FORMAT = "%(asctime)-15s:%(levelname)s %(module)s %(message)s"
